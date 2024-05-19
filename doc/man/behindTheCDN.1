@@ -1,0 +1,97 @@
+.Dd May 16, 2024
+.Dt behindTheCDN 1
+.Os
+
+.Sh NAME
+.Nm behindTheCDN
+.Nd get IP address behind CDN/WAFs
+
+.Sh SYNOPSIS
+.Nm
+.Bl -offset 4
+.Op Fl cihns
+.Op Fl d Ar domain
+.Op Fl f Ar file
+.Op Fl o Ar output
+
+.Sh DESCRIPTION
+Red Team / OSINT reconnaissance tool that
+searches IP addresses behind Content Delivery Networks (CDNs) and
+Web Application Firewalls (WAFs)
+utilizing DNS resolution history, SSL certificate analysis and
+HTTP response headers from VirusTotal, Censys and Shodan APIs.
+.Pp
+The following options are available:
+.Bl -tag -width Ds
+.It Fl d Ar domain
+Search the specified
+.Ar domain .
+.It Fl f Ar file
+Specify a
+.Ar file
+containing a list of domains to search.
+.It Fl o Ar output
+Write to file
+.Ar output .
+.It Fl c
+Enable Censys search.
+.It Fl h
+Enable DNS history search. This is the default.
+.It Fl m
+Enable subdomain search.
+.It Fl s
+Enable SSL certificate search.
+.It Fl n
+Disable color output.
+.El
+
+.Sh ENVIRONMENT
+The following environment variables affect the execution of
+.Nm :
+.Bl -tag -width Ds
+.It Ev XDG_DATA_HOME
+The API configuration read from a file set in
+.Pa XDG_DATA_HOME
+or to a default equal to
+.Pa $HOME/.local/share
+when this variable is not set or empty.
+.It Ev TERM
+The color functionality depends on a terminal type with color capabilities.
+.It Ev TZ
+The timezone to use when timestamping files. See
+.Xr environ 7
+for more information.
+.El
+
+.Sh EXIT STATUS
+.Ex -std
+
+.Sh EXAMPLES
+Search for domain with DNS history:
+.Pp
+.Dl $ behindTheCDN -d example.com
+.Pp
+Enable Censys search and write output to
+.Pa file\c
+:
+.Pp
+.Dl $ behindTheCDN -c -o output.txt
+.Pp
+Search for subdomains behind CDN and disable color printing:
+.Pp
+.Dl $ behindTheCDN -m -n
+
+.Sh SEE ALSO
+.Xr curl 1
+.Xr diff 1
+.Xr dig 1
+.Xr jq 1
+.Xr xmllint 1
+
+.Sh STANDARDS
+The
+.Nm
+utility conforms to
+.St -p1003.1-2001
+and
+XDG, and runs
