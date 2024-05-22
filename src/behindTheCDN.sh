@@ -45,9 +45,9 @@ setvars2() {
 
 setcolors() {
 	 reset='\033[0m'     bold='\033[1m'
-	   red='\033[31m'   green='\033[32m' _blue='\033[34m'
-	yellow='\033[33m' magenta='\033[35m' _cyan='\033[36m'
-	  _gray='\033[37m'
+	   red='\033[31m'   green='\033[32m' blue='\033[34m'
+	yellow='\033[33m' magenta='\033[35m' cyan='\033[36m'
+	  gray='\033[1;37m'
 }
 
 colorize() {
@@ -65,7 +65,7 @@ msg() {
 	color=${arg#* }
 	bcolor=${bold}${color}
 
-	println "${bcolor}${pre}${reset}${bcolor} $* ${reset}"
+	println "${bcolor}${pre}${reset}${bold}${gray} $* ${reset}"
 }
 
 msg2() {
@@ -74,14 +74,14 @@ msg2() {
 	color=${arg#* }
 	bcolor=${bold}${color}
 
-	println "" "${bcolor}${pre}${reset}${bold}:${reset}${bcolor} $* ${reset}"
+	println "" "${bcolor}${pre}${reset}${bold}:${reset}${bold}${gray} $* ${reset}"
 }
 
 println() { printf '%b\n' "$@"; }
      ok() { msg "[+] $green" "${green}$*${reset}"; }
    info() { msg "[*] $magenta" "$@"; }
    warn() { msg "[!] $yellow" "${yellow}$*${reset}"; }
-    err() { msg2 "error $red" "$@"; } >&2
+    err() { msg2 "error: $red" "$@"; } >&2
 
 ctrl_c() {
 	info "Exiting in a controlled way"
@@ -95,7 +95,7 @@ virustotal_owner() {
 	virustotal_owner="$loc_dom/${ip}_virustotal_owner.txt"
 
 	curl --retry 3 -s -m 5 -k -X GET \
-		--url "$url_virustotal/ip_addresses/$ip" \
+		--url "$virustotal_api/ip_addresses/$ip" \
 		--header "x-apikey: $VIRUSTOTAL_API_ID" > "$virustotal_report"
 
 	jq -r '.data.attributes.as_owner' "$virustotal_report" > "$virustotal_owner"
@@ -124,13 +124,11 @@ dns_records() {
 }
 
 setvars() {
-	url_virustotal="https://www.virustotal.com/api/v3"
-	url_virustotal_domains="$url_virustotal/domains"
-	url_virustotal_hist="$url_virustotal/$domain/historical_ssl_certificates?limit=40"
+	virustotal_api="https://www.virustotal.com/api/v3"
+	virustotal_domains="$virustotal_api/domains/$domain/resolutions?limit=40"
+	virustotal_hist="$virustotal_api/$domain/historical_ssl_certificates?limit=40"
 
 	loc_dom="$location/$domain"
-
-	vtDoms="$url_virustotal/$loc_dom/resolutions?limit=40"
 	vtRes="$loc_dom/virustotal_resolutions.json"
 	vtRes_tmp="${vtRes%.*}_tmp.json"
 	vtRes_comb="${vtRes%.*}_combined.json"
@@ -169,13 +167,10 @@ dns_hist() {
 
 	setvars
 
-	curl --retry 3 -s -m 5 -k -X GET --url "$vtDoms" \
+	curl --retry 3 -s -m 5 -k -X GET --url "$virustotal_domains" \
 		--header "x-apikey: $VIRUSTOTAL_API_ID" > "$vtRes"
 
 	ip_address "$vtRes" > "$loc_dom/IP.txt"
-
-		echo "$loc_dom/IP.txt"
-		cat src/../out/scans/matrix.org/IP.txt
 
 	if $intensive
 	then
@@ -210,7 +205,7 @@ certs_hist() {
 
 	info "SHA256 fingerprint of SSL certificates [VirusTotal] {${str}}"
 
-	curl --retry 3 -s -m 5 -k -X GET --url "$url_virustotal_hist" \
+	curl --retry 3 -s -m 5 -k -X GET --url "$virustotal_hist" \
 		--header "x-apikey: $VIRUSTOTAL_API_ID" > "$hist_certs"
 
 	if $intensive
@@ -244,7 +239,7 @@ certs_hist() {
 # 	println "test"
 # }
 
-censys_query_certs() {
+censys_certs() {
 	info "Searching IPs under sha256 hashes of certs where CN=$domain"
 
 	curl --retry 3 -s -X GET -H "Content-Type: application/json" -H "Host: $CENSYS_DOMAIN_API" \
@@ -288,11 +283,18 @@ shodan_search () {
 
 	shodan_query="$SHODAN_URL_API/shodan/host/search?key=$SHODAN_API&query=$domain"
 
-	_request=$(
+	request=$(
 		curl --retry 1 -s -m 10 -X GET -H "Content-Type: application/json" \
 		-H "Host: $SHODAN_DOMAIN_API" -H "Referer: $SHODAN_URL_API" \
 		--url "$shodan_query" | jq | tee "$shodan_search_dom"
 	)
+
+	re='membership or higher to access'
+	case $request in
+	*"Requires $re"*)
+		warn "Shodan requires $re"
+		return 1
+	esac
 
 	test_ip=$(
 		jq -r '.matches[] | select(.ip_str | test("^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$")) | .ip_str' "$shodan_search_dom" | sort | uniq)
@@ -439,7 +441,7 @@ match_percent() {
 	println "$integer_match"
 }
 
-check_content() {
+check_html() {
 	type="${1:?}"
 	shift 1
 
@@ -503,7 +505,7 @@ sort_uniq_ip() {
 	sort_uniq_file "$ip_valid_tmp" "$ip_valid"
 }
 
-trim_ips_file() {
+trim_ip() {
 	file=$1
 
 	[ ! -s "$file" ] && return 1
@@ -522,6 +524,7 @@ check_ip() {
 	fi
 }
 
+### Need to merge these 2
 show_ip() {
 	info "Valid IP set"
 
@@ -532,7 +535,7 @@ show_ip() {
 }
 
 show_ip_owner() {
-	info "Valid IP with its Autonomous System owner"
+	info "Valid IP with Autonomous System owner"
 
 	check_ip
 
@@ -541,8 +544,9 @@ show_ip_owner() {
 		println "$ip Autonomous System owner: $(virustotal_owner "$ip")"
 	done < "$ip_valid"
 }
+### Need to merge these 2
 
-cdn_valid_ptr() {
+cdn_ptr() {
 	IP=$1
 	hostname=$(dig +short -x "$IP")
 
@@ -556,7 +560,7 @@ cdn_valid_ptr() {
 	done
 }
 
-cdn_valid_whois() {
+cdn_whois() {
 	IP=$1
 	whois=$(whois "$IP")
 
@@ -598,7 +602,7 @@ cdn_valid_headers_cookies() {
 		return 0
 	fi
 
-	ok "$IP Potential CDN bypass"
+	ok "$IP potential CDN bypass"
 	println "$IP" >> "$results_file"
 	println "$IP" >> "$loc_dom/IP_Bypass.txt"
 }
@@ -610,10 +614,10 @@ check_cdn() {
 
 	while IFS= read -r cdn_search
 	do
-		cdn_ptr=$(cdn_valid_ptr "$cdn_search")
+		cdn_ptr=$(cdn_ptr "$cdn_search")
 		if [ -z "${cdn_ptr}" ]
 		then
-			cdn_whois=$(cdn_valid_whois "$cdn_search")
+			cdn_whois=$(cdn_whois "$cdn_search")
 			if [ -z "${cdn_whois}" ]
 			then
 				cdn_headers_validation=$(
@@ -676,7 +680,7 @@ check_waf() {
 		then
 			println "$waf_search WAF detected by shodan: $waf_valid"
 		else
-			ok "$waf_search Potential WAF bypass by Shodan"
+			ok "$waf_search Potential WAF bypass [Shodan]"
 		fi
 	done
 }
@@ -684,8 +688,8 @@ check_waf() {
 core_exec() {
 	  check_lines http
 	  check_lines https
-	check_content http
-	check_content https
+	check_html http
+	check_html https
 	 sort_uniq_ip
 }
 
@@ -695,20 +699,20 @@ check_cdn_waf() {
 }
 
 core2_exec() {
-	censys_query_certs
+	censys_certs
 	shodan_search
 	core_exec
-	trim_ips_file "$ip_valid"
+	trim_ip "$ip_valid"
 }
 
 flag_domain() {
 	dns_records
 	dns_hist
 	shodan_search
-	check_lines   https
-	check_content https
+	check_lines  https
+	check_html   https
 	sort_uniq_ip
-	trim_ips_file "$ip_valid"
+	trim_ip "$ip_valid"
 	show_ip
 	check_cdn_waf
 }
@@ -719,7 +723,7 @@ iflag() {
 	certs_hist  intensive
 	shodan_search
 	core_exec
-	trim_ips_file "$ip_valid"
+	trim_ip "$ip_valid"
 	show_ip_owner
 	check_cdn_waf
 }
@@ -747,7 +751,7 @@ check_dns_a_records() {
 
 	if [ -z "$dns_a_records_check" ]
 	then
-		err "No resolution DNS found for $domain"
+		err "No resolution DNS found <$domain>"
 		return 1
 	fi
 }
@@ -758,7 +762,7 @@ exec_scan() {
 
 	results_file="$exe_dir/../out/results/results-$timestamp-$domain.txt"
 
-	println "Potential CDN Bypass for: $domain" >> "$results_file"
+	println "Potential CDN Bypass <$domain>" >> "$results_file"
 
 	: topdomain="$(println "$domain" | awk -F '.' '{ print $(NF-1)"."$NF }')"
 
