@@ -358,7 +358,7 @@ check_lines() {
 	do
 		test_valid=$(
 			curl --retry 1 -L -s -m 1 -k -X GET "$@" -H "$CONNECTION_HEADER" \
-				--resolve "*:80:$test_ip $type://$domain" |
+				--resolve "*:80:$test_ip" "$type://$domain" |
 				tee "$output_dir/test_valid_${type}_${test_ip}.html"
 		)
 
@@ -579,7 +579,7 @@ cdn_valid_headers_cookies() {
 
 	headers=$(curl --retry 3 -L -sI -m 5 -k -X GET \
 		-H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE" \
-		-H "$CONNECTION_HEADER" --resolve "*:443:${IP} https://${domain}")
+		-H "$CONNECTION_HEADER" --resolve "*:443:${IP}" "https://${domain}")
 
 	detected_cdn=
 
