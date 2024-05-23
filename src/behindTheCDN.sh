@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #set -Cefu
 
-     exe_ver=3.0.0
-  repo_owner=Neved4
+exe_ver=3.0.0
+repo_owner=Neved4
 dns_resolver=8.8.8.8
 
  exe_dir=${0%/*}
@@ -320,12 +320,14 @@ check_ip_list() {
 }
 
 case_type() {
+	msg=${1:?}
+
 	case $type in
 	 http) type_u=HTTP  ;;
 	https) type_u=HTTPS ;;
 	esac
 
-	info "IP line validation [$type_u]"
+	info "IP $msg validation [$type_u]"
 }
 
 check_lines() {
@@ -337,7 +339,6 @@ check_lines() {
 	output_dir="$loc_dom/valid_${type}"
 
 	mkdir -p "$output_dir"
-
 	set -- -H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE"
 
 	valid=$(
@@ -352,13 +353,15 @@ check_lines() {
 		return 1
 	fi
 
-	case_type
+	case_type line
+
+	setvars
 
 	for test_ip in $(sort "$loc_dom/IP.txt" | uniq)
 	do
 		test_valid=$(
 			curl --retry 1 -L -s -m 1 -k -X GET "$@" -H "$CONNECTION_HEADER" \
-				--resolve "*:80:$test_ip $type://$domain" |
+				--resolve "*:80:$test_ip" "$type://$domain" |
 				tee "$output_dir/test_valid_${type}_${test_ip}.html"
 		)
 
@@ -458,7 +461,7 @@ check_html() {
 	text_first=$(normalize_html "$input_dir/valid_${type}.html" |
 		tee "$input_dir/real_normalize_${type}.txt")
 
-	case_type
+	case_type content
 
 	re='([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)\.html/\1/'
 
@@ -579,7 +582,7 @@ cdn_valid_headers_cookies() {
 
 	headers=$(curl --retry 3 -L -sI -m 5 -k -X GET \
 		-H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE" \
-		-H "$CONNECTION_HEADER" --resolve "*:443:${IP} https://${domain}")
+		-H "$CONNECTION_HEADER" --resolve "*:443:${IP}" "https://${domain}")
 
 	detected_cdn=
 
