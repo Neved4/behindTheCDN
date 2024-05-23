@@ -80,7 +80,7 @@ msg2() {
 }
 
 println() { printf '%b\n' "$@"; }
-     ok() { msg "[+] $green" "${green}$*${reset}"; }
+     ok() { msg "[+] $green" "$@"; }
    info() { msg "[*] $magenta" "$@"; }
    warn() { msg "[!] $yellow" "${yellow}$*${reset}"; }
     err() { msg2 "error: $red" "$@"; } >&2
@@ -298,7 +298,7 @@ shodan_search () {
 	case $request in
 	*"Requires $re"*)
 		printf '\033[A\r'
-		warn "Shodan requires $re"
+		warn "Shodan access requires membership or higher"
 		return 1
 	esac
 
@@ -912,7 +912,7 @@ xdg_config() {
 	do
 		if srcfile "$file"
 		then
-			info "Loaded $name from $file"
+			$vflag && info "Loaded $name from $file"
 			break
 		fi
 	done
@@ -925,14 +925,14 @@ check_xdg() {
 	xdg_config 'API keys' "$XDG_DATA_HOME"
 	xdg_config   'global' "$XDG_CONFIG_HOME"
 
-	srcfile "$conf_dir"/.env && info "Loaded env from $conf_dir/.env"
+	srcfile "$conf_dir"/.env && $vflag && info "Loaded env from $conf_dir/.env"
 	println
 }
 
 optparse() {
-	iflag=false cflag=false domain='' oval='' fval=''
+	iflag=false cflag=false domain='' oval='' fval='' vflag=false
 
-	while getopts ':d:icf:o:nh?' opt
+	while getopts ':d:icf:o:nvh?' opt
 	do
 		case "${opt}" in
 		d) domain=$OPTARG ;;
@@ -941,6 +941,7 @@ optparse() {
 		n) nflag=true ;;
 		f) fval=$OPTARG ;;
 		o) oval=$OPTARG ;;
+		v) vflag=true ;;
 		?) print_usage ;;
 		esac
 	done
