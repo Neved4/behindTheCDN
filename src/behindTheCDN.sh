@@ -371,13 +371,9 @@ check_lines() {
 			continue
 		fi
 
-		re='(?<=<title>).*?(?=</title>)'
-
-		_file="$output_dir/valid_${type}.html"
-		title_a=$(grep -oP "$re" "$_file")
-
-		_file="$output_dir/test_valid_${type}_$test_ip.html"
-		title_b=$(grep -oP "$re" "$_file")
+		re='s/.*<title>\(.*\)<\/title>.*/\1/p'
+		title_a=$(sed -n "$re" "$output_dir/valid_$type.html")
+		title_b=$(sed -n "$re" "$output_dir/test_valid_${type}_$test_ip.html")
 
 		if [ -n "$title_a" ] && [ -n "$title_b" ]
 		then
