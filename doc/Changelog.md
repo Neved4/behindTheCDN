@@ -39,7 +39,7 @@ There are extensive changes, including but not limited to the following:
 
 #### *Performance*
 
-- Reduce the number of syscalls, from `0` to `0` total.[^2]
+- Reduce the number of syscalls, from `5279` to `4530` total.[^2]
 - Reduce runtime overhead performance, from `15ms` to `5ms`.
 
 #### *Other Features*
