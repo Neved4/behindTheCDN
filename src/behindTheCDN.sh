@@ -33,7 +33,7 @@ setvars2() {
 	awk="$exe_dir/colorize.awk"
 	cdn_patterns="$conf_dir/cdn_patterns.conf"
 	global="$conf_dir/global.conf"
-	_global=$global
+	: "$global"
 
 	if $curl
 	then
@@ -48,6 +48,8 @@ setcolors() {
 	   red='\033[31m'   green='\033[32m' blue='\033[34m'
 	yellow='\033[33m' magenta='\033[35m' cyan='\033[36m'
 	  gray='\033[1;37m'
+
+	: "$blue" "$cyan"
 }
 
 colorize() {
@@ -290,6 +292,7 @@ shodan_search () {
 	)
 
 	re='membership or higher to access'
+
 	case $request in
 	*"Requires $re"*)
 		warn "Shodan requires $re"
@@ -411,11 +414,11 @@ check_lines() {
 	println
 }
 
-normalize_html() {
+lint_html() {
 	file_path=$1 text=
 
 	text=$(xmllint --html --xpath "//text()" "$file_path" 2>/dev/null |
-		tr '[:upper:]' '[:lower:]' | awk '{$1=$1};1')
+		tr '[:upper:]' '[:lower:]' | awk '{ $1=$1 }; 1')
 
 	println "$text"
 }
@@ -454,28 +457,24 @@ check_html() {
 		return 1
 	fi
 
-	text_first=$(normalize_html "$input_dir/valid_${type}.html" |
-		tee "$input_dir/real_normalize_${type}.txt")
+	text_first=$(lint_html "$input_dir/valid_${type}.html" |
+		tee "$input_dir/real_lint_${type}.txt")
 
 	case_type content
 
 	re='([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)\.html/\1/'
 
-	println
-	println '-- HTML content match --'
+	println '' '-- HTML content match --'
 
 	for file in "$input_dir"/test_valid_"${type}"_*.html
 	do
 		if [ -f "$file" ]
 		then
 			filename="${file##*/}"
-
 			test_ip=$(println "$filename" |
 				sed -E "s/test_valid_${type}_$re")
-
-			text_second=$(normalize_html "$input_dir/$filename" |
-				tee "$input_dir/test_normalize_${type}_$test_ip.txt")
-
+			text_second=$(lint_html "$input_dir/$filename" |
+				tee "$input_dir/test_lint_${type}_$test_ip.txt")
 			match=$(match_percent "$text_first" "$text_second")
 
 			if [ "$match" -gt 75 ]
@@ -484,7 +483,6 @@ check_html() {
 			fi
 
 			printf "%-15s %s\n" "$test_ip" "${match}%"
-			# println "$test_ip match: ${match}%"
 		fi
 	done
 
@@ -511,7 +509,8 @@ trim_ip() {
 
 	for ip_to_delete in "${dns_a_records[@]}"
 	do
-		sed -i "/^$ip_to_delete$/d" "$file"
+		sed "/^$ip_to_delete$/d" "$file" > "${file}_tmp"
+		mv "${file}_tmp" "$file"
 	done
 }
 
@@ -567,20 +566,20 @@ cdn_whois() {
 	do
 		case $whois in
 		*"$cdn"*)
-			println "$IP CDN detected by whois: $cdn "
+			println "$IP CDN found whois [$cdn]"
 			break
 		esac
 	done
 }
 
-cdn_valid_headers_cookies() {
-	IP=$1
+cdn_headers_cookies() {
+	IP=$1 detected_cdn=
 
 	headers=$(curl --retry 3 -L -sI -m 5 -k -X GET \
 		-H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE" \
-		-H "$CONNECTION_HEADER" --resolve "*:443:${IP}" "https://${domain}")
+		-H "$CONNECTION_HEADER" --resolve "*:443:${IP}" "https://$domain")
 
-	detected_cdn=
+	setvars
 
 	while IFS= read -r cdn
 	do
@@ -619,11 +618,9 @@ check_cdn() {
 			cdn_whois=$(cdn_whois "$cdn_search")
 			if [ -z "${cdn_whois}" ]
 			then
-				cdn_headers_validation=$(
-					cdn_valid_headers_cookies "$cdn_search"
-				)
+				cdn_headers=$(cdn_headers_cookies "$cdn_search")
 
-				println "$cdn_headers_validation"
+				println "$cdn_headers"
 			else
 				println "$cdn_whois"
 			fi
@@ -651,7 +648,13 @@ waf_detect_shodan() {
 				jq | tee "$shodan_search_ip"
 	)
 
-	: "$request"
+	re='membership or higher to access'
+
+	case $request in
+	*"Requires $re"*)
+		warn "Requires membership"
+		return 1
+	esac
 
 	cdn=$(jq -r 'select(.tags[] | contains("cdn")).data[].isp' \
 		"$shodan_search_ip" | sort | uniq)
@@ -677,7 +680,7 @@ check_waf() {
 
 		if [ -n "$waf_valid" ]
 		then
-			println "$waf_search WAF detected by shodan: $waf_valid"
+			println "$waf_search WAF found Shodan: $waf_valid"
 		else
 			ok "$waf_search Potential WAF bypass [Shodan]"
 		fi
