@@ -67,7 +67,7 @@ msg() {
 	color=${arg#* }
 	bcolor=${bold}${color}
 
-	println "${bcolor}${pre}${reset}${bold}${gray} $* ${reset}"
+	println "${bcolor}${pre}${reset}${bold}${gray} $* $reset"
 }
 
 msg2() {
@@ -76,7 +76,7 @@ msg2() {
 	color=${arg#* }
 	bcolor=${bold}${color}
 
-	println "" "${bcolor}${pre}${reset}${bold}:${reset}${bold}${gray} $* ${reset}"
+	println "" "${bcolor}${pre}${reset}${bold}:${reset}${bold}${gray} $* $reset"
 }
 
 println() { printf '%b\n' "$@"; }
@@ -148,6 +148,7 @@ setvars() {
 }
 
 setvars
+setvars2
 
 virustotal_url_next() {
 	curl --retry 3 -s -m 5 -k -X GET \
@@ -244,8 +245,9 @@ certs_hist() {
 censys_certs() {
 	info "Searching IPs under sha256 hashes of certs where CN=$domain"
 
-	curl --retry 3 -s -X GET -H "Content-Type: application/json" -H "Host: $CENSYS_DOMAIN_API" \
-		-H "Referer: $CENSYS_URL_API" -u "$CENSYS_API_ID:$CENSYS_API_SECRET" \
+	curl --retry 3 -s -X GET -H "Content-Type: application/json" \
+		-H "Host: $CENSYS_DOMAIN_API" -H "Referer: $CENSYS_URL_API" \
+		-u "$CENSYS_API_ID:$CENSYS_API_SECRET" \
 		--url "$CENSYS_URL_API/v2/certs/search?q=$domain" \
 		| jq -r '.result.hits | .[].fingerprint_sha256' > "$sha256_certs"
 
@@ -337,6 +339,10 @@ printip() {
 	printf '%-15s %s\n' "${test_ip}" "${1}%"
 }
 
+printmatch() {
+	println '' '-- HTML content match --'
+}
+
 check_lines() {
 	type="${1:?}"
 	shift 1
@@ -361,9 +367,7 @@ check_lines() {
 	fi
 
 	case_type line
-	setvars
-
-	println '' '-- HTML content match --'
+	printmatch
 
 	for test_ip in $(sort "$loc_dom/IP.txt" | uniq)
 	do
@@ -435,8 +439,10 @@ match_percent() {
 	words_first=$(println "$text_first" | tr ' ' '\n')
 	words_second=$(println "$text_second" | tr ' ' '\n')
 
-	words_shared=$(println "$words_first" "$words_second" | sort | uniq -d | wc -l)
-	 words_total=$(println "$words_first" "$words_second" | sort | uniq | wc -l)
+	words_shared=$(println "$words_first" "$words_second" |
+		sort | uniq -d | wc -l)
+	 words_total=$(println "$words_first" "$words_second" |
+	 	sort | uniq | wc -l)
 
 	match=$(
 		awk -v c="$words_shared" -v t="$words_total" '
@@ -466,10 +472,9 @@ check_html() {
 		tee "$input_dir/real_lint_${type}.txt")
 
 	case_type content
+	printmatch
 
 	re='([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)\.html/\1/'
-
-	println '' '-- HTML content match --'
 
 	for file in "$input_dir"/test_valid_"${type}"_*.html
 	do
@@ -579,8 +584,6 @@ cdn_whois() {
 
 cdn_headers_cookies() {
 	IP=$1 detected_cdn=
-
-	setvars
 
 	headers=$(curl --retry 3 -L -sI -m 5 -k -X GET \
 		-H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE" \
