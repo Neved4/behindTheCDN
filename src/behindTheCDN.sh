@@ -333,6 +333,10 @@ case_type() {
 	info "IP $msg validation [$type_u]"
 }
 
+printip() {
+	printf '%-15s %s\n' "${test_ip}" "${1}%"
+}
+
 check_lines() {
 	type="${1:?}"
 	shift 1
@@ -357,8 +361,9 @@ check_lines() {
 	fi
 
 	case_type line
-
 	setvars
+
+	println '' '-- HTML content match --'
 
 	for test_ip in $(sort "$loc_dom/IP.txt" | uniq)
 	do
@@ -370,7 +375,7 @@ check_lines() {
 
 		if [ -z "$test_valid" ]
 		then
-			println "$test_ip Percentage: 0%"
+			printip 0
 			continue
 		fi
 
@@ -382,7 +387,7 @@ check_lines() {
 		then
 			case "$title_b" in
 			*"$title_a"*)
-				println "$test_ip Percentage: 100%"
+				printip 100
 				println "$test_ip" >> "$ip_valid_tmp"
 				continue
 			esac
@@ -406,7 +411,7 @@ check_lines() {
 		percent=$(( (lines - difference) * 100 / lines ))
 		percent=$(( percent < 0 ? 0 : percent ))
 
-		println "$test_ip Percentage: ${percent}%"
+		printip $percent
 
 		[ $percent -gt 75 ] && println "$test_ip" >> "$ip_valid_tmp"
 	done
@@ -482,7 +487,7 @@ check_html() {
 				println "$test_ip" >> "$ip_valid_tmp"
 			fi
 
-			printf "%-15s %s\n" "$test_ip" "${match}%"
+			printip "$match"
 		fi
 	done
 
@@ -552,7 +557,7 @@ cdn_ptr() {
 	do
 		case $hostname in
 		*"$cdn"*)
-			println "$IP CDN detected by PTR register: $cdn"
+			println "$IP CDN found by PTR register: $cdn"
 			break
 		esac
 	done
@@ -575,11 +580,11 @@ cdn_whois() {
 cdn_headers_cookies() {
 	IP=$1 detected_cdn=
 
+	setvars
+
 	headers=$(curl --retry 3 -L -sI -m 5 -k -X GET \
 		-H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE" \
 		-H "$CONNECTION_HEADER" --resolve "*:443:${IP}" "https://$domain")
-
-	setvars
 
 	while IFS= read -r cdn
 	do
@@ -596,7 +601,7 @@ cdn_headers_cookies() {
 
 	if [ -n "$detected_cdn" ]
 	then
-		println "$IP CDN detected by headers and cookies name: $detected_cdn"
+		println "$IP CDN found by headers and cookies name: $detected_cdn"
 		return 0
 	fi
 
@@ -613,10 +618,11 @@ check_cdn() {
 	while IFS= read -r cdn_search
 	do
 		cdn_ptr=$(cdn_ptr "$cdn_search")
-		if [ -z "${cdn_ptr}" ]
+		if [ -z "$cdn_ptr" ]
 		then
 			cdn_whois=$(cdn_whois "$cdn_search")
-			if [ -z "${cdn_whois}" ]
+
+			if [ -z "$cdn_whois" ]
 			then
 				cdn_headers=$(cdn_headers_cookies "$cdn_search")
 
