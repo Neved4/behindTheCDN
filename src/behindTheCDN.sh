@@ -3,7 +3,7 @@
 
 exe_ver=3.0.0
 repo_owner=Neved4
-dns_resolver=8.8.8.8
+_dns_resolver=8.8.8.8
 
  exe_dir=${0%/*}
 exe_name=${0##*/}
@@ -110,7 +110,7 @@ dns_records() {
 
 	info "DNS A records $str<$domain>"
 
-	dns_a_records=($(dig +short A "$domain" @"$dns_resolver"))
+	dns_a_records=($(dig +short A "$domain"))
 
 	for dns_a in "${dns_a_records[@]}"
 	do
@@ -566,7 +566,7 @@ cdn_whois() {
 	do
 		case $whois in
 		*"$cdn"*)
-			println "$IP CDN found whois [$cdn]"
+			println "$IP CDN found whois <$cdn>"
 			break
 		esac
 	done
@@ -749,7 +749,7 @@ flag_all() {
 }
 
 check_dns_a_records() {
-	dns_a_records_check=$(dig +short A "$domain" @${dns_resolver})
+	dns_a_records_check=$(dig +short A "$domain")
 
 	if [ -z "$dns_a_records_check" ]
 	then
