@@ -297,6 +297,7 @@ shodan_search () {
 
 	case $request in
 	*"Requires $re"*)
+		printf '\033[A\r'
 		warn "Shodan requires $re"
 		return 1
 	esac
