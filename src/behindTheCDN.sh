@@ -586,7 +586,7 @@ cdn_whois() {
 cdn_headers_cookies() {
 	IP=$1 detected_cdn=
 
-	headers=$(curl --retry 3 -L -sI -m 5 -k -X GET \
+	headers=$(curl --retry 1 -L -sI -m 1 -k -X GET \
 		-H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE" \
 		-H "$CONNECTION_HEADER" --resolve "*:443:${IP}" "https://$domain")
 
