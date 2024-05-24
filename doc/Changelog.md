@@ -4,7 +4,10 @@
 
 _Enhance script robustness, simplicity, portability, and performance._
 
-The leading goal is to make the script more *robust* and *maintainable*, while enhancing its *simplicity*, *portability* and *performance*. Commits have been combined into a cohesive whole for greater clarity. [TigerStyle] was followed when possible.
+The leading goal is to make the script more *robust* and *maintainable*,
+while enhancing its *simplicity*, *portability* and *performance*. Commits
+have been combined into a cohesive whole for greater clarity. [TigerStyle]
+was followed when possible.
 
 ## Changes
 
@@ -15,9 +18,12 @@ There are extensive changes, including but not limited to the following:
 - Fix all `shellcheck` warnings, errors and issues (`45` warnings, `53` info).
 - Fix potentially removing root directory on empty values.
 - Add better checks, constraints, redirections and exit codes.
-- Add fallbacks and support environmental variables.
+- Add logic to handle Shodan membership warning instead of returning errors.
 - Use `set -Cefu` to enforce error exits, prevent var misuse
   and ensure safer file redirections.[^1]
+- Add fallbacks and support environmental variables.
+- Use unified curl connections...
+- Upgrade `curl` insecure connections removing `-k`.
 
 #### *Simplicity*
 
@@ -36,11 +42,16 @@ There are extensive changes, including but not limited to the following:
   *`bash`, `dash`, `ksh93`, `mksh`, `oksh`, `osh`, `posh`, `yash`, `zsh`.*
 - Use `/bin/sh` with standard idioms, following POSIX spec closely.
 - Support and test different platforms `Linux`, `macOS`, `FreeBSD`.
+- Migrate `grep -P` PCRE regex to POSIX-compatible regex.
 
 #### *Performance*
 
+- Reduce runtime overhead performance ≈ `55 ms`, from `205.9 ms`
+  to `150.6 ms`.[^a]
 - Reduce the number of syscalls, from `5279` to `4530` total.[^2]
-- Reduce runtime overhead performance, from `15ms` to `5ms`.
+- Use the system default nameserver instead of `8.8.8.8`.
+
+[^a]: Measured with `hyperfine` on `-d 127.0.0.1`.
 
 #### *Other Features*
 

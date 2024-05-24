@@ -1,6 +1,7 @@
-- Investigate why it's spending extra time at `[+] 83.136.250.51 potential
-  CDN bypass` and/or in WAF/shodan compared to the original.
-
+- Better organize `out/` directory
+- Store results in `$XDG_STATE_HOME`, `~/.local/state`, `out/`
+- Redo options + Execution logic instead of "chunks"
+- Finish "Live" `curl script.sh | sh` mode
 - Add gifs/terminal screenshots
 - Measure syscalls `dtruss -c` / `strace -c`
 - Test across Linux / macOS / FreeBSD

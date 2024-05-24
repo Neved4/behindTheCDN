@@ -1,7 +1,7 @@
 ![Shell Script](https://img.shields.io/badge/Shell_Script-9DDE66?logo=gnubash&logoColor=000&style=for-the-badge)
 [![POSIX.1%2D2017](https://img.shields.io/badge/POSIX.1&#8209;2017-6A737D?labelColor=6A737D&style=for-the-badge)][POSIX.1-2017]
 
-# **[WIP]** **[Draft]** `behindTheCDN.sh` - Bypass CDN/WAFs! 📍 📡
+# **[Draft]** `behindTheCDN.sh` - Bypass CDN/WAFs! 📍 📡
 
 Red Team / OSINT reconnaissance tool that searches IP addresses behind
 Content Delivery Networks (CDNs) and Web Application Firewalls (WAFs).

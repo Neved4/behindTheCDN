@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2086
 #set -Cefu
 
 exe_ver=3.0.0
@@ -8,6 +9,7 @@ _dns_resolver=8.8.8.8
  exe_dir=${0%/*}
 exe_name=${0##*/}
 conf_dir="$exe_dir/../conf"
+ out_dir="$exe_dir/../out"
      awk="$exe_dir/colorize.awk"
 
       fval=
@@ -16,15 +18,19 @@ conf_dir="$exe_dir/../conf"
   location=
 github_raw="https://raw.githubusercontent.com/$repo_owner/$exe_name/main"
 
+# -fsSL
+curl_flags='-X GET -sL -m 1 --retry 1'
+
 # trap ctrl_c INT
 
 check_curl() {
 	curl=false
 
 	case "$@" in
-	--from-curl)
-		curl=true
+	--from-curl) curl=true
 	esac
+
+	# this should ultimately trigger an interactive mode, where the domain is specified too, otherwise the script can't tell which flags it'll be exec'd with bc it's already called...
 }
 
 check_curl "$@"
@@ -83,7 +89,7 @@ println() { printf '%b\n' "$@"; }
      ok() { msg "[+] $green" "$@"; }
    info() { msg "[*] $magenta" "$@"; }
    warn() { msg "[!] $yellow" "${yellow}$*${reset}"; }
-    err() { msg2 "error: $red" "$@"; } >&2
+    err() { msg2 "error: $red" "$@" && exit 1; } >&2
 
 ctrl_c() {
 	info "Exiting in a controlled way"
@@ -96,11 +102,11 @@ virustotal_owner() {
 	virustotal_report="$loc_dom/${ip}_virustotal_report.json"
 	virustotal_owner="$loc_dom/${ip}_virustotal_owner.txt"
 
-	curl --retry 3 -s -m 5 -k -X GET \
+	curl $curl_flags \
 		--url "$virustotal_api/ip_addresses/$ip" \
-		--header "x-apikey: $VIRUSTOTAL_API_ID" > "$virustotal_report"
+		--header "x-apikey: $VIRUSTOTAL_API_ID" >| "$virustotal_report"
 
-	jq -r '.data.attributes.as_owner' "$virustotal_report" > "$virustotal_owner"
+	jq -r '.data.attributes.as_owner' "$virustotal_report" >| "$virustotal_owner"
 
 	cat "$virustotal_owner"
 }
@@ -137,7 +143,7 @@ setvars() {
 
 	vt_url_next="$loc_dom/virustotal_url_next.txt"
 
-	ip_valid="$loc_dom/IP_valid.txt"
+	ip_valid="$loc_dom/ip_valid.txt"
 	ip_valid_tmp="${ip_valid%.*}_tmp.txt"
 
 	hist_certs="$loc_dom/virustotal_historical_ssl_certs.json"
@@ -151,7 +157,7 @@ setvars
 setvars2
 
 virustotal_url_next() {
-	curl --retry 3 -s -m 5 -k -X GET \
+	curl $curl_flags \
 		--url "$(cat "$vt_url_next")" \
 		--header "x-apikey: $VIRUSTOTAL_API_ID"
 }
@@ -166,26 +172,27 @@ dns_hist() {
 
 	[ "$str" = 'intensive' ] && intensive=true
 
-	info "DNS resolution history <$domain>${str}"
-
 	setvars
 
-	curl --retry 3 -s -m 5 -k -X GET --url "$virustotal_domains" \
-		--header "x-apikey: $VIRUSTOTAL_API_ID" > "$vtRes"
+	info "DNS resolution history <$domain>${str}"
 
-	ip_address "$vtRes" > "$loc_dom/IP.txt"
+	curl $curl_flags \
+		--url "$virustotal_domains" \
+		--header "x-apikey: $VIRUSTOTAL_API_ID" >| "$vtRes"
+
+	ip_address "$vtRes" >| "$loc_dom/ip.txt"
 
 	if $intensive
 	then
-		links_next "$vtRes" > "$vt_url_next"
+		links_next "$vtRes" >| "$vt_url_next"
 
 		while [ -s "$vt_url_next" ]
 		do
-			virustotal_url_next > "$vtRes_tmp"
-			links_next "$vtRes_tmp" > "$vt_url_next"
-			ip_address "$vtRes_tmp" >> "$loc_dom/IP.txt"
+			virustotal_url_next >| "$vtRes_tmp"
+			links_next "$vtRes_tmp" >| "$vt_url_next"
+			ip_address "$vtRes_tmp" >> "$loc_dom/ip.txt"
 			jq -s '.[0].data + .[1].data | {data: .}' \
-				"$vtRes" "$vtRes_tmp" > "$vtRes_comb"
+				"$vtRes" "$vtRes_tmp" >| "$vtRes_comb"
 
 			mv "$vtRes_comb" "$vtRes"
 		done
@@ -193,7 +200,7 @@ dns_hist() {
 		rm -rf "$vt_url_next" "$vtRes_tmp"
 	fi
 
-	sort "$loc_dom/IP.txt"
+	sort "$loc_dom/ip.txt"
 
 	println
 }
@@ -208,27 +215,28 @@ certs_hist() {
 
 	info "SHA256 fingerprint of SSL certificates [VirusTotal] {${str}}"
 
-	curl --retry 3 -s -m 5 -k -X GET --url "$virustotal_hist" \
-		--header "x-apikey: $VIRUSTOTAL_API_ID" > "$hist_certs"
+	curl $curl_flags \
+		--url "$virustotal_hist" \
+		--header "x-apikey: $VIRUSTOTAL_API_ID" >| "$hist_certs"
 
 	if $intensive
 	then
-		links_next "$hist_certs" > "$vt_url_next"
+		links_next "$hist_certs" >| "$vt_url_next"
 
 		while [ -s "$vt_url_next" ]
 		do
-			virustotal_url_next > "$hist_certs_tmp"
-			links_next "$hist_certs_tmp" > "$vt_url_next"
+			virustotal_url_next >| "$hist_certs_tmp"
+			links_next "$hist_certs_tmp" >| "$vt_url_next"
 			tp_sha256 "$hist_certs_tmp" >> "$sha256_certs"
 			jq -s '.[0].data + .[1].data | {data: .}' \
-				"$hist_certs" "$hist_certs_tmp" > "$hist_certs_combined"
+				"$hist_certs" "$hist_certs_tmp" >| "$hist_certs_combined"
 
 			mv "$hist_certs_combined" "$hist_certs"
 		done
 
 		rm -rf "$vt_url_next" "$hist_certs_tmp"
 	else
-		tp_sha256 "$hist_certs" > "$sha256_certs"
+		tp_sha256 "$hist_certs" >| "$sha256_certs"
 	fi
 
 	cat "$sha256_certs"
@@ -245,11 +253,13 @@ certs_hist() {
 censys_certs() {
 	info "Searching IPs under sha256 hashes of certs where CN=$domain"
 
-	curl --retry 3 -s -X GET -H "Content-Type: application/json" \
-		-H "Host: $CENSYS_DOMAIN_API" -H "Referer: $CENSYS_URL_API" \
+	curl $curl_flags \
+		-H "Content-Type: application/json" \
+		-H "Host: $CENSYS_DOMAIN_API" \
+		-H "Referer: $CENSYS_URL_API" \
 		-u "$CENSYS_API_ID:$CENSYS_API_SECRET" \
 		--url "$CENSYS_URL_API/v2/certs/search?q=$domain" \
-		| jq -r '.result.hits | .[].fingerprint_sha256' > "$sha256_certs"
+			| jq -r '.result.hits | .[].fingerprint_sha256' >| "$sha256_certs"
 
 	if [ ! -s "$sha256_certs" ]
 	then
@@ -257,23 +267,26 @@ censys_certs() {
 		return 1
 	fi
 
+	lfp='v2/hosts/search?q=services.tls.certs.leaf_data.fingerprint'
+	cc='or+services.tls.certs.chain.fingerprint'
+
 	sort "$sha256_certs" | while IFS= read -r sha256
 	do
-		curl --retry 3 -s -X GET -H "Content-Type: application/json" \
+		curl $curl_flags \
+			-H "Content-Type: application/json" \
 			-H "Host: $CENSYS_DOMAIN_API" -H "Referer: $CENSYS_URL_API" \
 			-u "$CENSYS_API_ID:$CENSYS_API_SECRET" \
-			--url "$CENSYS_URL_API/v2/hosts/search?q=services.tls.certs.leaf_data.\
-			fingerprint%3A+$sha256+or+services.tls.certs.chain.fingerprint%3A+$sha256" \
-			| jq -r '.result.hits | .[].ip' >> "$loc_dom/IP.txt"
+			--url "$CENSYS_URL_API/${lfp}%3A+$sha256+${cc}%3A+$sha256" \
+				| jq -r '.result.hits | .[].ip' >> "$loc_dom/ip.txt"
 	done
 
-	if [ ! -s "$loc_dom/IP.txt" ]
+	if [ ! -s "$loc_dom/ip.txt" ]
 	then
 		err "Censys IP not found for certs"
 		return 1
 	fi
 
-	cat "$loc_dom/IP.txt"
+	cat "$loc_dom/ip.txt"
 }
 
 shodan_search () {
@@ -288,9 +301,11 @@ shodan_search () {
 	shodan_query="$SHODAN_URL_API/shodan/host/search?key=$SHODAN_API&query=$domain"
 
 	request=$(
-		curl --retry 1 -s -m 10 -X GET -H "Content-Type: application/json" \
-		-H "Host: $SHODAN_DOMAIN_API" -H "Referer: $SHODAN_URL_API" \
-		--url "$shodan_query" | jq | tee "$shodan_search_dom"
+		curl $curl_flags \
+			-H "Content-Type: application/json" \
+			-H "Host: $SHODAN_DOMAIN_API" \
+			-H "Referer: $SHODAN_URL_API" \
+			--url "$shodan_query" | jq | tee "$shodan_search_dom"
 	)
 
 	re='membership or higher to access'
@@ -311,14 +326,14 @@ shodan_search () {
 		return 1
 	fi
 
-	println "$test_ip" >> "$loc_dom/IP.txt"
+	println "$test_ip" >> "$loc_dom/ip.txt"
 	println "$test_ip"
 
 	println
 }
 
 check_ip_list() {
-	if [ ! -s "$loc_dom/IP.txt" ]
+	if [ ! -s "$loc_dom/ip.txt" ]
 	then
 		err "IP list is empty"
 		return 1
@@ -356,8 +371,8 @@ check_lines() {
 	set -- -H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE"
 
 	valid=$(
-		curl --retry 3 -L -s -m 10 -k -X GET "$@" \
-			-H "$CONNECTION_HEADER" "$type://$domain" |
+		curl $curl_flags \
+			"$@" -H "$CONNECTION_HEADER" "$type://$domain" |
 				tee "$output_dir/valid_${type}.html"
 	)
 
@@ -370,12 +385,13 @@ check_lines() {
 	case_type line
 	printmatch
 
-	for test_ip in $(sort "$loc_dom/IP.txt" | uniq)
+	for test_ip in $(sort "$loc_dom/ip.txt" | uniq)
 	do
 		test_valid=$(
-			curl --retry 1 -L -s -m 1 -k -X GET "$@" -H "$CONNECTION_HEADER" \
+			curl $curl_flags \
+				"$@" -H "$CONNECTION_HEADER" \
 				--resolve "*:80:$test_ip" "$type://$domain" |
-				tee "$output_dir/test_valid_${type}_${test_ip}.html"
+					tee "$output_dir/test_valid_${type}_${test_ip}.html"
 		)
 
 		if [ -z "$test_valid" ]
@@ -506,7 +522,7 @@ sort_uniq_file() {
 
 	[ ! -s "$in" ] && return 1
 
-	sort "$in" | uniq > "$out"
+	sort "$in" | uniq >| "$out"
 }
 
 sort_uniq_ip() {
@@ -520,7 +536,7 @@ trim_ip() {
 
 	for ip_to_delete in "${dns_a_records[@]}"
 	do
-		sed "/^$ip_to_delete$/d" "$file" > "${file}_tmp"
+		sed "/^$ip_to_delete$/d" "$file" >| "${file}_tmp"
 		mv "${file}_tmp" "$file"
 	done
 }
@@ -586,9 +602,11 @@ cdn_whois() {
 cdn_headers_cookies() {
 	IP=$1 detected_cdn=
 
-	headers=$(curl --retry 3 -L -sI -m 5 -k -X GET \
-		-H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE" \
-		-H "$CONNECTION_HEADER" --resolve "*:443:${IP}" "https://$domain")
+	headers=$(
+		curl $curl_flags -I \
+			-H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE" \
+			-H "$CONNECTION_HEADER" --resolve "*:443:${IP}" "https://$domain"
+	)
 
 	while IFS= read -r cdn
 	do
@@ -609,9 +627,9 @@ cdn_headers_cookies() {
 		return 0
 	fi
 
-	ok "$IP potential CDN bypass"
+	ok "$IP Potential CDN bypass"
 	println "$IP" >> "$results_file"
-	println "$IP" >> "$loc_dom/IP_Bypass.txt"
+	println "$IP" >> "$loc_dom/ip_bypass.txt"
 }
 
 check_cdn() {
@@ -651,7 +669,7 @@ waf_detect_shodan() {
 	shodan_request="$SHODAN_URL_API/shodan/host/$IP?key=$SHODAN_API"
 
 	request=$(
-		curl --retry 1 -s -m 10 -X GET \
+		curl $curl_flags \
 			-H "Content-Type: application/json" -H "Host: $SHODAN_DOMAIN_API" \
 			-H "Referer: $SHODAN_URL_API" \
 			--url "$shodan_request" |
@@ -770,15 +788,14 @@ check_dns_a_records() {
 
 exec_scan() {
 	timestamp="$(date +%F)"
-	mkdir -p out/results
 
-	results_file="$exe_dir/../out/results/results-$timestamp-$domain.txt"
+	mkdir -p out/results out/scans $out_dir/scans/$domain
+
+	results_file="$exe_dir/../out/results/$domain-$timestamp.txt"
 
 	println "Potential CDN Bypass <$domain>" >> "$results_file"
 
 	: topdomain="$(println "$domain" | awk -F '.' '{ print $(NF-1)"."$NF }')"
-
-	mkdir -p out/scans
 
 	location="$exe_dir/../out/scans"
 	scan_path="scans"
@@ -973,7 +990,7 @@ main() {
 
 	# ###### ^ if no config files are there, ask them interactively using read -r
 
-	# -k VIRUSTOTAL_API_ID=value CENSYS_API_ID=value CENSYS_API_SECRET=value SHODAN_API=value
+	# VIRUSTOTAL_API_ID=value CENSYS_API_ID=value CENSYS_API_SECRET=value SHODAN_API=value
 
 	if [ -z "$domain" ] && [ -z "$fval" ]
 	then
