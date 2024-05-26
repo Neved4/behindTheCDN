@@ -972,6 +972,29 @@ check_api() {
 	fi
 }
 
+read_keys() {
+	os=$(uname -s)
+
+	for i
+	do
+		key=$i
+
+		printf %s "Enter $key: "
+
+		case $os in
+		Darwin|Linux|*BSD)
+			read -r -s i
+			;;
+		*)
+			stty -echo
+			read -r i
+			stty echo
+		esac
+
+		printf '\n'
+	done
+}
+
 main() {
 	hascolor && setcolors
 
@@ -982,23 +1005,20 @@ main() {
 
 	hascmd 'curl' 'dig' 'jq' 'xmllint'
 
-	# if [ -z "$VIRUSTOTAL_API_ID" ]
-	# then
-	# 	read -r VIRUSTOTAL_API_ID
-	# 	printf %s 'Enter VIRUSTOTAL_API_ID: '
-	# fi
-
-	# ###### ^ if no config files are there, ask them interactively using read -r
-
-	# VIRUSTOTAL_API_ID=value CENSYS_API_ID=value CENSYS_API_SECRET=value SHODAN_API=value
+	check_xdg
 
 	if [ -z "$domain" ] && [ -z "$fval" ]
 	then
-		err "No domain [-d] or file [-f] argument supplied"
-		print_usage
+		if $curl || [ -z "$VIRUSTOTAL_API_ID" ]
+		then
+			read_keys VIRUSTOTAL_API_ID \
+				CENSYS_API_ID CENSYS_API_SECRET \
+				SHODAN_API
+		else
+			err "No domain [-d] or file [-f] argument supplied"
+			print_usage
+		fi
 	fi
-
-	check_xdg
 
 	[ -n "$fval" ] && isfile "$1"
 
