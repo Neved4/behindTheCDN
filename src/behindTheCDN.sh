@@ -26,11 +26,11 @@ curl_flags='-X GET -sL -m 1 --retry 1'
 check_curl() {
 	curl=false
 
-	case "$@" in
-	--from-curl) curl=true
+	case "$1" in
+	--from-curl)
+		curl=true
+		shift 1
 	esac
-
-	# this should ultimately trigger an interactive mode, where the domain is specified too, otherwise the script can't tell which flags it'll be exec'd with bc it's already called...
 }
 
 check_curl "$@"
@@ -965,7 +965,7 @@ optparse() {
 		f) fval=$OPTARG ;;
 		o) oval=$OPTARG ;;
 		v) vflag=true ;;
-		?) print_usage ;;
+		?) $curl || print_usage ;;
 		esac
 	done
 }
