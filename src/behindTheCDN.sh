@@ -35,6 +35,12 @@ check_curl() {
 
 check_curl "$@"
 
+if $curl
+then
+	exe_name=behindTheCDN
+	github_raw="https://raw.githubusercontent.com/$repo_owner/$exe_name"
+fi
+
 setvars2() {
 	awk="$exe_dir/colorize.awk"
 	cdn_patterns="$conf_dir/cdn_patterns.conf"
@@ -891,7 +897,7 @@ has() {
 }
 
 hascmd() {
-	for i in "$@"
+	for i
 	do
 		if ! has "$i"
 		then
@@ -975,7 +981,7 @@ check_api() {
 read_keys() {
 	os=$(uname -s)
 
-	for i
+	for i in "$@"
 	do
 		key=$i
 
@@ -983,8 +989,7 @@ read_keys() {
 
 		case $os in
 		Darwin|Linux|*BSD)
-			read -r -s i
-			;;
+			read -r -s i ;;
 		*)
 			stty -echo
 			read -r i
@@ -997,14 +1002,12 @@ read_keys() {
 
 main() {
 	hascolor && setcolors
-
 	logo
 
 	optparse "$@"
 	shift $((OPTIND - 1))
 
 	hascmd 'curl' 'dig' 'jq' 'xmllint'
-
 	check_xdg
 
 	if [ -z "$domain" ] && [ -z "$fval" ]
