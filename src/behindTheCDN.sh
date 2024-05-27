@@ -13,7 +13,7 @@ conf_dir="$exe_dir/../conf"
      awk="$exe_dir/colorize.awk"
 
       fval=
-     nflag=false
+     _nflag=false
     domain=
   location=
 github_raw="https://raw.githubusercontent.com/$repo_owner/$exe_name/main"
@@ -22,6 +22,10 @@ github_raw="https://raw.githubusercontent.com/$repo_owner/$exe_name/main"
 curl_flags='-X GET -sL -m 1 --retry 1'
 
 # trap ctrl_c INT
+
+cdns='akamai cloudflare maxcdn fastly amazonaws google level3 verizon
+	  limelight incapsula stackpath cacheFly cdnetworks turbobytes highwinds
+	  chinacache azion belugacdn bunny cloudfront'
 
 check_curl() {
 	curl=false
@@ -132,9 +136,9 @@ dns_records() {
 
 	info "DNS A records $str<$domain>"
 
-	dns_a_records=($(dig +short A "$domain"))
+	dns_a_records=$(dig +short A "$domain")
 
-	for dns_a in "${dns_a_records[@]}"
+	for dns_a in $dns_a_records
 	do
 		case $str in
 		'with AS owner')
@@ -550,7 +554,7 @@ trim_ip() {
 
 	[ ! -s "$file" ] && return 1
 
-	for ip_to_delete in "${dns_a_records[@]}"
+	for ip_to_delete in $dns_a_records
 	do
 		sed "/^$ip_to_delete$/d" "$file" >| "${file}_tmp"
 		mv "${file}_tmp" "$file"
@@ -591,7 +595,7 @@ cdn_ptr() {
 	IP=$1
 	hostname=$(dig +short -x "$IP")
 
-	for cdn in "${cdns[@]}"
+	for cdn in $cdns
 	do
 		case $hostname in
 		*"$cdn"*)
@@ -605,7 +609,7 @@ cdn_whois() {
 	IP=$1
 	whois=$(whois "$IP")
 
-	for cdn in "${cdns[@]}"
+	for cdn in $cdns
 	do
 		case $whois in
 		*"$cdn"*)
@@ -614,6 +618,7 @@ cdn_whois() {
 		esac
 	done
 }
+## Need to merge cdn whois and ptr
 
 cdn_headers_cookies() {
 	IP=$1 detected_cdn=
@@ -977,7 +982,7 @@ optparse() {
 		d) domain=$OPTARG ;;
 		i) iflag=true ;;
 		c) cflag=true ;;
-		n) nflag=true ;;
+		n) _nflag=true ;;
 		f) fval=$OPTARG ;;
 		o) oval=$OPTARG ;;
 		v) vflag=true ;;

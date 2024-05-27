@@ -138,8 +138,8 @@ Here are the ones we've tested:
 
 | System       | Supported |
 | :----------- | :-------- |
-| `macOS 14`   | ⚠️ WIP     |
-| `FreeBSD 14` | ⚠️ WIP     |
+| `macOS 14`   | ✅ Yes     |
+| `FreeBSD 14` | ✅ Yes     |
 | `Fedora 40`  | ✅ Yes     |
 | `Debian 12`  | ✅ Yes     |
 | `WSL 2`      | ⚠️ WIP     |
@@ -149,14 +149,14 @@ Here are the ones we've tested:
 |     Shell | Version       | Supported |
 | --------: | :------------ | :-------- |
 |  [`bash`] | `5.2.26`      | ✅ Yes     |
-|  [`dash`] | `0.5.12`      | ⚠️ WIP     |
+|  [`dash`] | `0.5.12`      | ✅ Yes     |
 | [`ksh93`] | `93u+m/1.0.8` | ✅ Yes     |
 |  [`mksh`] | `59c`         | ✅ Yes     |
-|  [`oksh`] | `7.5`         | ⚠️ WIP     |
-|   [`osh`] | `0.20.0`      | ✅ Yes     | [^1] |
-|  [`posh`] | `0.14.1`      | ⚠️ WIP     | [^2] |
+|  [`oksh`] | `7.5`         | ✅ Yes     |
 |  [`yash`] | `2.56.1`      | ✅ Yes     |
 |   [`zsh`] | `5.9`         | ✅ Yes     |
+|   [`osh`] | `0.20.0`      | ⚠️ No[^1]  |
+|  [`posh`] | `0.14.1`      | ⚠️ No[^2]  |
 
 [^1] and [^2] won't work with curl due to missing `-s` specified by POSIX:
 -s
