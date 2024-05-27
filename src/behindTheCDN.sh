@@ -35,11 +35,21 @@ check_curl() {
 
 check_curl "$@"
 
-if $curl
+if $curl && [ ! -t 1 ] && [ -z "$TERM" ]
 then
 	exe_name=behindTheCDN
 	github_raw="https://raw.githubusercontent.com/$repo_owner/$exe_name"
 fi
+
+case "$-" in
+    *i*)
+		exe_name=behindTheCDN
+		github_raw="https://raw.githubusercontent.com/$repo_owner/$exe_name"
+		;;
+	*)
+		exe_name=behindTheCDN
+		github_raw="https://raw.githubusercontent.com/$repo_owner/$exe_name"
+esac
 
 setvars2() {
 	awk="$exe_dir/colorize.awk"
@@ -71,10 +81,6 @@ colorize() {
 	else
 		[ -f "$awk" ] && awk -f "$awk"
 	fi
-}
-
-isterm() {
-	[ -t 1 ] && [ -n "$TERM" ]
 }
 
 msg() {
@@ -603,7 +609,7 @@ cdn_whois() {
 	do
 		case $whois in
 		*"$cdn"*)
-			println "$IP CDN found whois <$cdn>"
+			println "$IP CDN found by whois $magenta<$cdn>$reset"
 			break
 		esac
 	done
@@ -849,6 +855,10 @@ main_logic() {
 	exec_scan
 }
 
+isterm() {
+	[ -t 1 ] && [ -n "$TERM" ]
+}
+
 hascolor() {
 	if isterm # && [ $nflag = false ]
 	then
@@ -1006,6 +1016,11 @@ get_keys() {
 }
 
 main() {
+	 reset=''    bold=''
+	   red=''   green='' blue=''
+	yellow='' magenta='' cyan=''
+	  gray=''
+
 	hascolor && setcolors
 	logo
 

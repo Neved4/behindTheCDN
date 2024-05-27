@@ -6,9 +6,14 @@
 Red Team / OSINT reconnaissance tool that searches IP addresses behind
 Content Delivery Networks (CDNs) and Web Application Firewalls (WAFs).
 
-Leverages various methods, like DNS resolution history, SSL certificate
-analysis and HTTP response headers from VirusTotal, Censys and Shodan APIs
-to determine potential CDN/WAF protecting a given domain.
+Leverages DNS resolution history, SSL certificate analysis and HTTP
+response headers from VirusTotal, Censys and Shodan to determine potential
+CDN/WAFs protecting a domain.
+
+<div align="center">
+  <img src="https://github.com/Neved4/behindTheCDN/assets/63655535/3a42d932-b871-4846-ba05-d96d74fb9fc9" alt="Image Description" style="width: 85%" />
+  <h6>Catpuccin Mocha theme, font Menlo.</h6>
+</div>
 
 ## Getting Started
 
@@ -65,8 +70,17 @@ Finally, set the APIs for VirustTotal and Censys on the
 
 ## Usage
 
-![](img/usage.png)
-<!-- ```txt
+The following options are available:
+
+<div align="center">
+  <img src="https://github.com/Neved4/behindTheCDN/assets/63655535/c6ebea8b-f77c-4d28-9ebd-319307c5703c" alt="usage --help" style="width: 85%" />
+</div>
+
+
+<details>
+  <summary>Usage (Offline)</summary>
+
+```yaml
 usage: behindTheCDN.sh [-ci] [-d <domain> | -f <file>] [-o <output>] ...
 
 Options:
@@ -75,7 +89,9 @@ Options:
   -f <file>   search by DNS history on every domain in the file
   -i          search by DNS history, SSL certificate, subdomains
   -o <output> save the output to a file
-``` -->
+```
+
+</details>
 
 ## Examples
 
@@ -109,7 +125,7 @@ $ ./behindTheCDN.sh -ci -f domains.txt
 By default `behindTheCDN.sh` writes its output to a timestamp file in the
 `results/` folder.
 
-## Benchmarks
+## Performance
 
 See: [Benchmarks](doc/Benchmark.md).
 

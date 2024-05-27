@@ -6,7 +6,8 @@
 - Measure syscalls `dtruss -c` / `strace -c`
 - Test across Linux / macOS / FreeBSD
 - Test across shells
-- Divide into better commits
+- Squash into a single commit
+- Rebase in a fresh project (11MB in .git)
 - Add release tags + tarballs
 - Add a brew tap
 
