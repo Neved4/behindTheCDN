@@ -334,6 +334,7 @@ shodan_search () {
 	*"Requires $re"*)
 		printf '\033[A\r'
 		warn "Shodan access requires membership or higher"
+		println
 		return 1
 	esac
 
@@ -613,10 +614,12 @@ cdn_whois() {
 	do
 		case $whois in
 		*"$cdn"*)
-			println "$IP CDN found by whois $magenta$under<$cdn>$reset"
+			println "$IP CDN found by whois <$cdn>"
 			break
 		esac
 	done
+
+	println
 }
 ## Need to merge cdn whois and ptr
 
@@ -648,7 +651,7 @@ cdn_headers_cookies() {
 		return 0
 	fi
 
-	ok "$IP Potential CDN bypass"
+	println "$IP Potential CDN bypass"
 	println "$IP" >> "$results_file"
 	println "$IP" >> "$loc_dom/ip_bypass.txt"
 }
@@ -701,7 +704,7 @@ waf_detect_shodan() {
 
 	case $request in
 	*"Requires $re"*)
-		warn "Requires membership"
+		warn "Membership"
 		return 1
 	esac
 

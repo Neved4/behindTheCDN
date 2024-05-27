@@ -131,7 +131,7 @@ See: [Benchmarks](doc/Benchmark.md).
 
 ## Portability
 
-### Supported operating systems
+### Supported systems
 
 Most versions and distributions of Linux, FreeBSD, and macOS should work.
 Here are the ones we've tested:
@@ -165,7 +165,7 @@ https://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html
 
 ## Standards
 
-This script conforms to [ISO 9945:2009][POSIX.1-2017], also known as
+This script is compatible with [ISO 9945:2009][POSIX.1-2017], also known as
 [POSIX.1-2017].[^1]
 
 ## License
