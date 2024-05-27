@@ -999,16 +999,8 @@ get_keys() {
 		key=$i
 
 		printf %s "Enter $key: "
-
-		if isterm
-		then
-			read ${s_opt:-} -r val < /dev/tty
-		else
-			read ${s_opt:-} -r val
-		fi
-
+		isterm && read ${s_opt:-} -r val </dev/tty
  		export "$i"="$val"
-
 		printf '\n'
 	done
 }
