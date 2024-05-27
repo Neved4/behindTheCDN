@@ -70,7 +70,7 @@ setvars2() {
 }
 
 setcolors() {
-	 reset='\033[0m'     bold='\033[1m'
+	 reset='\033[0m'     bold='\033[1m' under='\033[4m'
 	   red='\033[31m'   green='\033[32m' blue='\033[34m'
 	yellow='\033[33m' magenta='\033[35m' cyan='\033[36m'
 	  gray='\033[1;37m'
@@ -93,7 +93,7 @@ msg() {
 	color=${arg#* }
 	bcolor=${bold}${color}
 
-	println "${bcolor}${pre}${reset}${bold}${gray} $* $reset"
+	println "$bcolor$pre$reset$bold$gray $* $reset"
 }
 
 msg2() {
@@ -102,13 +102,13 @@ msg2() {
 	color=${arg#* }
 	bcolor=${bold}${color}
 
-	println "" "${bcolor}${pre}${reset}${bold}:${reset}${bold}${gray} $* $reset"
+	println "" "$bcolor$pre$reset$bold:$reset$bold$gray $* $reset"
 }
 
 println() { printf '%b\n' "$@"; }
      ok() { msg "[+] $green" "$@"; }
    info() { msg "[*] $magenta" "$@"; }
-   warn() { msg "[!] $yellow" "${yellow}$*${reset}"; }
+   warn() { msg "[!] $yellow" "$yellow$*$reset"; }
     err() { msg2 "error: $red" "$@" && exit 1; } >&2
 
 ctrl_c() {
@@ -233,7 +233,7 @@ certs_hist() {
 
 	[ "$str" = 'intensive' ] && intensive=true
 
-	info "SHA256 fingerprint of SSL certificates [VirusTotal] {${str}}"
+	info "SHA256 fingerprint of SSL certificates [VirusTotal] {$str}"
 
 	curl $curl_flags \
 		--url "$virustotal_hist" \
@@ -372,7 +372,7 @@ case_type() {
 }
 
 printip() {
-	printf '%-15s %s\n' "${test_ip}" "${1}%"
+	printf '%-15s %s\n' "${test_ip}" "$1%"
 }
 
 printmatch() {
@@ -613,7 +613,7 @@ cdn_whois() {
 	do
 		case $whois in
 		*"$cdn"*)
-			println "$IP CDN found by whois $magenta<$cdn>$reset"
+			println "$IP CDN found by whois $magenta$under<$cdn>$reset"
 			break
 		esac
 	done
@@ -874,11 +874,13 @@ hascolor() {
 }
 
 logo() {
-	hascolor && printf '%b' "${bold}${yellow}"
+	hascolor && printf '%b' "$bold$yellow"
+
 	println "██╗  $exe_name" \
 	        "╚▊▊╗" \
 	        " ╚██ version: $exe_ver"
-	hascolor && printf '%b\n' "${reset}"
+
+	hascolor && printf '%b\n' "$reset"
 }
 
 usage() {
@@ -978,7 +980,7 @@ optparse() {
 
 	while getopts ':d:icf:o:nvh?' opt
 	do
-		case "${opt}" in
+		case $opt in
 		d) domain=$OPTARG ;;
 		i) iflag=true ;;
 		c) cflag=true ;;
@@ -1021,7 +1023,7 @@ get_keys() {
 }
 
 main() {
-	 reset=''    bold=''
+	 reset=''    bold='' under=''
 	   red=''   green='' blue=''
 	yellow='' magenta='' cyan=''
 	  gray=''
