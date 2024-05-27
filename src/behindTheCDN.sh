@@ -73,6 +73,10 @@ colorize() {
 	fi
 }
 
+isterm() {
+	[ -t 1 ] && [ -n "$TERM" ]
+}
+
 msg() {
 	  arg=$1 && shift 1
 	  pre=${arg%% *}
@@ -98,7 +102,7 @@ println() { printf '%b\n' "$@"; }
     err() { msg2 "error: $red" "$@" && exit 1; } >&2
 
 ctrl_c() {
-	info "Exiting in a controlled way"
+	info 'Exiting in a controlled way'
 	exit 0
 }
 
@@ -269,7 +273,7 @@ censys_certs() {
 
 	if [ ! -s "$sha256_certs" ]
 	then
-		err "No certs found in censys"
+		err 'No certs found in censys'
 		return 1
 	fi
 
@@ -288,7 +292,7 @@ censys_certs() {
 
 	if [ ! -s "$loc_dom/ip.txt" ]
 	then
-		err "Censys IP not found for certs"
+		err 'Censys IP not found for certs'
 		return 1
 	fi
 
@@ -300,7 +304,7 @@ shodan_search () {
 
 	if [ ! "$SHODAN_API" ]
 	then
-		err "Enter Shodan API Key in API.conf"
+		err 'Enter Shodan API Key'
 		return 1
 	fi
 
@@ -341,7 +345,7 @@ shodan_search () {
 check_ip_list() {
 	if [ ! -s "$loc_dom/ip.txt" ]
 	then
-		err "IP list is empty"
+		err 'IP list is empty'
 		return 1
 	fi
 }
@@ -487,7 +491,7 @@ check_html() {
 
 	if [ ! -d "$input_dir" ]
 	then
-		err "${type} validation failed (Empty original request)"
+		err "$type validation failed (Empty original request)"
 		return 1
 	fi
 
@@ -550,14 +554,14 @@ trim_ip() {
 check_ip() {
 	if ! [ -s "$ip_valid" ]
 	then
-		err "IP list is valid but empty"
+		err 'IP list is valid but empty'
 		return 1
 	fi
 }
 
 ### Need to merge these 2
 show_ip() {
-	info "Valid IP set"
+	info 'Valid IP set'
 
 	check_ip
 	cat "$ip_valid"
@@ -566,7 +570,7 @@ show_ip() {
 }
 
 show_ip_owner() {
-	info "Valid IP with Autonomous System owner"
+	info 'Valid IP with Autonomous System owner'
 
 	check_ip
 
@@ -639,7 +643,7 @@ cdn_headers_cookies() {
 }
 
 check_cdn() {
-	info "Searching for CDN"
+	info 'Searching for CDN'
 
 	check_ip
 
@@ -706,7 +710,7 @@ waf_detect_shodan() {
 check_waf() {
 	[ ! -s "$ip_valid" ] && return 1
 
-	info "Looking up the WAF in Shodan"
+	info 'Looking up the WAF in Shodan'
 
 	for waf_search in $(sort "$ip_valid" | uniq)
 	do
@@ -846,7 +850,7 @@ main_logic() {
 }
 
 hascolor() {
-	if [ -t 1 ] # && [ $nflag = false ]
+	if isterm # && [ $nflag = false ]
 	then
 		return 0
 	else
@@ -955,6 +959,8 @@ check_xdg() {
 optparse() {
 	iflag=false cflag=false domain='' oval='' fval='' vflag=false
 
+	$curl && return 0
+
 	while getopts ':d:icf:o:nvh?' opt
 	do
 		case "${opt}" in
@@ -973,13 +979,20 @@ optparse() {
 check_api() {
 	if [ -z "$VIRUSTOTAL_API_ID" ] || [ -z "$CENSYS_API_ID" ] || [ -z "$CENSYS_API_SECRET" ]
 	then
-		err "Enter VirusTotal and Censys API Key in API.conf"
+		err 'Enter VirusTotal and Censys API keys'
 		exit 1
 	fi
 }
 
-read_keys() {
+get_keys() {
 	os=$(uname -s)
+
+	case $os in
+	Darwin|Linux|*BSD)
+		s_opt='-s' ;;
+	*)
+		s_opt=
+	esac
 
 	for i in "$@"
 	do
@@ -987,14 +1000,14 @@ read_keys() {
 
 		printf %s "Enter $key: "
 
-		case $os in
-		Darwin|Linux|*BSD)
-			read -r -s i ;;
-		*)
-			stty -echo
-			read -r i
-			stty echo
-		esac
+		if isterm
+		then
+			read ${s_opt:-} -r val < /dev/tty
+		else
+			read ${s_opt:-} -r val
+		fi
+
+ 		export "$i"="$val"
 
 		printf '\n'
 	done
@@ -1014,16 +1027,16 @@ main() {
 	then
 		if $curl || [ -z "$VIRUSTOTAL_API_ID" ]
 		then
-			read_keys VIRUSTOTAL_API_ID \
+			get_keys VIRUSTOTAL_API_ID \
 				CENSYS_API_ID CENSYS_API_SECRET \
 				SHODAN_API
 		else
-			err "No domain [-d] or file [-f] argument supplied"
+			err 'No domain [-d] or file [-f] argument supplied'
 			print_usage
 		fi
 	fi
 
-	[ -n "$fval" ] && isfile "$1"
+	[ -n "$fval" ] && isfile "$fval"
 
 	check_api
 
