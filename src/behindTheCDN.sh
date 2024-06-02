@@ -1037,7 +1037,7 @@ main() {
 	optparse "$@"
 	shift $((OPTIND - 1))
 
-	hascmd 'curl' 'dig' 'jq' 'xmllint'
+	hascmd 'curl' 'dig' 'jq' 'xmllint' 'whois'
 	check_xdg
 
 	if [ -z "$domain" ] && [ -z "$fval" ]

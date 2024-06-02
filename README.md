@@ -142,7 +142,7 @@ Here are the ones we've tested:
 | `FreeBSD 14` | ✅ Yes     |
 | `Fedora 40`  | ✅ Yes     |
 | `Debian 12`  | ✅ Yes     |
-| `WSL 2`      | ⚠️ WIP     |
+| `WSL 2`      | ✅ Yes     |
 
 ### Supported shells
 
