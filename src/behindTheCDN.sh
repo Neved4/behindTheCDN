@@ -17,14 +17,15 @@ conf_dir="$exe_dir/../conf"
   location=
 github_raw="https://raw.githubusercontent.com/$repo_owner/$exe_name/main"
 
-# -fsSL
-curl_flags='-X GET -sL -m 1 --retry 1'
+curl_flags='-X GET -sL -m 1 --retry 1' # -fsSL
 
 # trap ctrl_c INT
 
-cdns='akamai cloudflare maxcdn fastly amazonaws google level3 verizon
-	  limelight incapsula stackpath cacheFly cdnetworks turbobytes highwinds
-	  chinacache azion belugacdn bunny cloudfront'
+cdn_vend='akamai cloudflare maxcdn fastly amazonaws google level3 verizon
+	      limelight incapsula stackpath cacheFly cdnetworks turbobytes
+		  highwinds chinacache azion belugacdn bunny cloudfront'
+
+cdn_list=${CDN_LIST:-$cdn_vend}
 
 check_curl() {
 	curl=false
@@ -600,7 +601,7 @@ cdn_ptr() {
 	IP=$1
 	hostname=$(dig +short -x "$IP")
 
-	for cdn in $cdns
+	for cdn in $cdn_list
 	do
 		case $hostname in
 		*"$cdn"*)
@@ -614,7 +615,7 @@ cdn_whois() {
 	IP=$1
 	whois=$(whois "$IP")
 
-	for cdn in $cdns
+	for cdn in $cdn_list
 	do
 		case $whois in
 		*"$cdn"*)
