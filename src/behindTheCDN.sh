@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 set -Cefu
 
 exe_ver=3.0.0
