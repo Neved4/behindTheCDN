@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2086
-#set -Cefu
+set -Cefu
 
 exe_ver=3.0.0
 repo_owner=Neved4
@@ -116,13 +115,18 @@ ctrl_c() {
 	exit 0
 }
 
+curl_flags() {
+	# shellcheck disable=SC2086
+	curl $curl_flags "$@"
+}
+
 virustotal_owner() {
 	ip="$1"
 
 	virustotal_report="$loc_dom/${ip}_virustotal_report.json"
 	virustotal_owner="$loc_dom/${ip}_virustotal_owner.txt"
 
-	curl $curl_flags \
+	curl_flags \
 		--url "$virustotal_api/ip_addresses/$ip" \
 		--header "x-apikey: $VIRUSTOTAL_API_ID" >| "$virustotal_report"
 
@@ -177,7 +181,7 @@ setvars
 setvars2
 
 virustotal_url_next() {
-	curl $curl_flags \
+	curl_flags \
 		--url "$(cat "$vt_url_next")" \
 		--header "x-apikey: $VIRUSTOTAL_API_ID"
 }
@@ -196,7 +200,7 @@ dns_hist() {
 
 	info "DNS resolution history <$domain>${str}"
 
-	curl $curl_flags \
+	curl_flags \
 		--url "$virustotal_domains" \
 		--header "x-apikey: $VIRUSTOTAL_API_ID" >| "$vtRes"
 
@@ -235,7 +239,7 @@ certs_hist() {
 
 	info "SHA256 fingerprint of SSL certificates [VirusTotal] {$str}"
 
-	curl $curl_flags \
+	curl_flags \
 		--url "$virustotal_hist" \
 		--header "x-apikey: $VIRUSTOTAL_API_ID" >| "$hist_certs"
 
@@ -273,7 +277,7 @@ certs_hist() {
 censys_certs() {
 	info "Searching IPs under sha256 hashes of certs where CN=$domain"
 
-	curl $curl_flags \
+	curl_flags \
 		-H "Content-Type: application/json" \
 		-H "Host: $CENSYS_DOMAIN_API" \
 		-H "Referer: $CENSYS_URL_API" \
@@ -292,7 +296,7 @@ censys_certs() {
 
 	sort "$sha256_certs" | while IFS= read -r sha256
 	do
-		curl $curl_flags \
+		curl_flags \
 			-H "Content-Type: application/json" \
 			-H "Host: $CENSYS_DOMAIN_API" -H "Referer: $CENSYS_URL_API" \
 			-u "$CENSYS_API_ID:$CENSYS_API_SECRET" \
@@ -321,7 +325,7 @@ shodan_search () {
 	shodan_query="$SHODAN_URL_API/shodan/host/search?key=$SHODAN_API&query=$domain"
 
 	request=$(
-		curl $curl_flags \
+		curl_flags \
 			-H "Content-Type: application/json" \
 			-H "Host: $SHODAN_DOMAIN_API" \
 			-H "Referer: $SHODAN_URL_API" \
@@ -392,7 +396,7 @@ check_lines() {
 	set -- -H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE"
 
 	valid=$(
-		curl $curl_flags \
+		curl_flags \
 			"$@" -H "$CONNECTION_HEADER" "$type://$domain" |
 				tee "$output_dir/valid_${type}.html"
 	)
@@ -409,7 +413,7 @@ check_lines() {
 	for test_ip in $(sort "$loc_dom/ip.txt" | uniq)
 	do
 		test_valid=$(
-			curl $curl_flags \
+			curl_flags \
 				"$@" -H "$CONNECTION_HEADER" \
 				--resolve "*:80:$test_ip" "$type://$domain" |
 					tee "$output_dir/test_valid_${type}_${test_ip}.html"
@@ -627,7 +631,7 @@ cdn_headers_cookies() {
 	IP=$1 detected_cdn=
 
 	headers=$(
-		curl $curl_flags -I \
+		curl_flags -I \
 			-H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE" \
 			-H "$CONNECTION_HEADER" --resolve "*:443:${IP}" "https://$domain"
 	)
@@ -693,7 +697,7 @@ waf_detect_shodan() {
 	shodan_request="$SHODAN_URL_API/shodan/host/$IP?key=$SHODAN_API"
 
 	request=$(
-		curl $curl_flags \
+		curl_flags \
 			-H "Content-Type: application/json" -H "Host: $SHODAN_DOMAIN_API" \
 			-H "Referer: $SHODAN_URL_API" \
 			--url "$shodan_request" |
@@ -813,7 +817,7 @@ check_dns_a_records() {
 exec_scan() {
 	timestamp="$(date +%F)"
 
-	mkdir -p out/results out/scans $out_dir/scans/$domain
+	mkdir -p out/results out/scans "$out_dir/scans/$domain"
 
 	results_file="$exe_dir/../out/results/$domain-$timestamp.txt"
 
@@ -933,6 +937,8 @@ hascmd() {
 }
 
 hascmds() {
+	cmds=
+
     for i in "$@"
 	do
         has "$i" || cmds="$cmds $i"
