@@ -39,20 +39,19 @@ check_curl() {
 
 check_curl "$@"
 
-if $curl && [ ! -t 1 ] && [ -z "$TERM" ]
-then
+setvars3() {
 	exe_name=behindTheCDN
 	github_raw="https://raw.githubusercontent.com/$repo_owner/$exe_name"
+}
+
+if $curl && [ ! -t 1 ] && [ -z "$TERM" ]
+then
+	setvars3
 fi
 
 case "$-" in
-    *i*)
-		exe_name=behindTheCDN
-		github_raw="https://raw.githubusercontent.com/$repo_owner/$exe_name"
-		;;
-	*)
-		exe_name=behindTheCDN
-		github_raw="https://raw.githubusercontent.com/$repo_owner/$exe_name"
+*i*) setvars3 ;;
+  *) setvars3
 esac
 
 setvars2() {
@@ -71,20 +70,19 @@ setvars2() {
 
 setcolors() {
 	 reset='\033[0m'     bold='\033[1m' _under='\033[4m'
-	   red='\033[31m'   green='\033[32m' blue='\033[34m'
-	yellow='\033[33m' magenta='\033[35m' cyan='\033[36m'
+	   red='\033[31m'   green='\033[32m' _blue='\033[34m'
+	yellow='\033[33m' magenta='\033[35m' _cyan='\033[36m'
 	  gray='\033[1;37m'
-
-	: "$blue" "$cyan"
 }
 
 colorize() {
 	if $curl
 	then
 		awk "$(curl -fsSL "$awk")"
-	else
-		[ -f "$awk" ] && awk -f "$awk"
+		return 0
 	fi
+
+	[ -f "$awk" ] && awk -f "$awk"
 }
 
 msg() {
@@ -399,7 +397,7 @@ check_lines() {
 	valid=$(
 		curl_flags \
 			"$@" -H "$CONNECTION_HEADER" "$type://$domain" |
-				tee "$output_dir/valid_${type}.html"
+				tee "$output_dir/valid_$type.html"
 	)
 
 	if [ -z "$valid" ]
@@ -417,7 +415,7 @@ check_lines() {
 			curl_flags \
 				"$@" -H "$CONNECTION_HEADER" \
 				--resolve "*:80:$test_ip" "$type://$domain" |
-					tee "$output_dir/test_valid_${type}_${test_ip}.html"
+					tee "$output_dir/test_valid_${type}_$test_ip.html"
 		)
 
 		if [ -z "$test_valid" ]
@@ -503,7 +501,7 @@ check_html() {
 
 	check_ip_list
 
-	input_dir="$loc_dom/valid_${type}"
+	input_dir="$loc_dom/valid_$type"
 
 	if [ ! -d "$input_dir" ]
 	then
@@ -511,15 +509,15 @@ check_html() {
 		return 1
 	fi
 
-	text_first=$(lint_html "$input_dir/valid_${type}.html" |
-		tee "$input_dir/real_lint_${type}.txt")
+	text_first=$(lint_html "$input_dir/valid_$type.html" |
+		tee "$input_dir/real_lint_$type.txt")
 
 	case_type content
 	printmatch
 
 	re='([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)\.html/\1/'
 
-	for file in "$input_dir"/test_valid_"${type}"_*.html
+	for file in "$input_dir/test_valid_${type}_"*.html
 	do
 		if [ -f "$file" ]
 		then
@@ -575,19 +573,15 @@ check_ip() {
 	fi
 }
 
-### Need to merge these 2
 show_ip() {
-	info 'Valid IP set'
-
+	info 'Valid IP'
 	check_ip
 	cat "$ip_valid"
-
 	println
 }
 
 show_ip_owner() {
 	info 'Valid IP with Autonomous System owner'
-
 	check_ip
 
 	while IFS= read -r ip
@@ -595,31 +589,30 @@ show_ip_owner() {
 		println "$ip Autonomous System owner: $(virustotal_owner "$ip")"
 	done < "$ip_valid"
 }
-### Need to merge these 2
 
 cdn_ptr() {
-	IP=$1
-	hostname=$(dig +short -x "$IP")
+	ip=$1
+	hostname=$(dig +short -x "$ip")
 
 	for cdn in $cdn_list
 	do
 		case $hostname in
 		*"$cdn"*)
-			println "$IP CDN found by PTR register: $cdn"
+			println "$ip CDN found by PTR register: $cdn"
 			break
 		esac
 	done
 }
 
 cdn_whois() {
-	IP=$1
-	whois=$(whois "$IP")
+	ip=$1
+	whois=$(whois "$ip")
 
 	for cdn in $cdn_list
 	do
 		case $whois in
 		*"$cdn"*)
-			println "$IP CDN found by whois <$cdn>"
+			println "$ip CDN found by whois <$cdn>"
 			break
 		esac
 	done
@@ -629,12 +622,12 @@ cdn_whois() {
 ## Need to merge cdn whois and ptr
 
 cdn_headers_cookies() {
-	IP=$1 detected_cdn=
+	ip=$1 detected_cdn=
 
 	headers=$(
 		curl_flags -I \
 			-H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE" \
-			-H "$CONNECTION_HEADER" --resolve "*:443:${IP}" "https://$domain"
+			-H "$CONNECTION_HEADER" --resolve "*:443:$ip" "https://$domain"
 	)
 
 	while IFS= read -r cdn
@@ -652,13 +645,13 @@ cdn_headers_cookies() {
 
 	if [ -n "$detected_cdn" ]
 	then
-		println "$IP CDN found by headers and cookies name: $detected_cdn"
+		println "$ip CDN found by headers and cookies name: $detected_cdn"
 		return 0
 	fi
 
-	println "$IP Potential CDN bypass"
-	println "$IP" >> "$results_file"
-	println "$IP" >> "$loc_dom/ip_bypass.txt"
+	println "$ip Potential CDN bypass"
+	println "$ip" >> "$results_file"
+	println "$ip" >> "$loc_dom/ip_bypass.txt"
 }
 
 check_cdn() {
@@ -692,10 +685,10 @@ check_cdn() {
 waf_detect_shodan() {
 	[ -z "$SHODAN_API" ] && return 1
 
-	IP=$1
+	ip=$1
 
-	shodan_search_ip="$loc_dom/shodan_search_$IP.json"
-	shodan_request="$SHODAN_URL_API/shodan/host/$IP?key=$SHODAN_API"
+	shodan_search_ip="$loc_dom/shodan_search_$ip.json"
+	shodan_request="$SHODAN_URL_API/shodan/host/$ip?key=$SHODAN_API"
 
 	request=$(
 		curl_flags \
@@ -1027,7 +1020,7 @@ check_api() {
 	fi
 }
 
-get_keys() {
+key() {
 	os=$(uname -s)
 
 	case $os in
@@ -1048,10 +1041,17 @@ get_keys() {
 	done
 }
 
+api_keys() {
+	key VIRUSTOTAL_API_ID \
+		CENSYS_API_ID \
+		CENSYS_API_SECRET \
+		SHODAN_API
+}
+
 main() {
 	 reset=''    bold='' _under=''
-	   red=''   green='' blue=''
-	yellow='' magenta='' cyan=''
+	   red=''   green='' _blue=''
+	yellow='' magenta='' _cyan=''
 	  gray=''
 
 	hascolor && setcolors
@@ -1068,11 +1068,9 @@ main() {
 	then
 		if $curl || [ -z "$VIRUSTOTAL_API_ID" ]
 		then
-			get_keys VIRUSTOTAL_API_ID \
-				CENSYS_API_ID CENSYS_API_SECRET \
-				SHODAN_API
+			api_keys
 		else
-			err 'No domain [-d] or file [-f] argument supplied'
+			# err 'No domain [-d] or file [-f] argument supplied'
 			print_usage
 		fi
 	fi
