@@ -155,13 +155,13 @@ Here are the ones we've tested:
 |  [`oksh`] | `7.5`         | ✅ Yes     |
 |  [`yash`] | `2.56.1`      | ✅ Yes     |
 |   [`zsh`] | `5.9`         | ✅ Yes     |
-|   [`osh`] | `0.20.0`      | ⚠️ No[^1]  |
-|  [`posh`] | `0.14.1`      | ⚠️ No[^2]  |
+|   [`osh`] | `0.20.0`      | ✅ Yes      |
+|  [`posh`] | `0.14.1`      | ⚠️ No[^sup]  |
 
-[^1] and [^2] won't work with curl due to missing `-s` specified by POSIX:
--s
+[^sup]: [`posh`] won't work with curl due to missing `-s` specified by POSIX.
+<!-- -s
 Read commands from the standard input.
-https://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html
+https://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html -->
 
 ## Standards
 
