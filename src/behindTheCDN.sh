@@ -30,7 +30,7 @@ cdns='akamai cloudflare maxcdn fastly amazonaws google level3 verizon
 check_curl() {
 	curl=false
 
-	case "$1" in
+	case "${1:-}" in
 	--from-curl)
 		curl=true
 		shift 1
@@ -70,7 +70,7 @@ setvars2() {
 }
 
 setcolors() {
-	 reset='\033[0m'     bold='\033[1m' under='\033[4m'
+	 reset='\033[0m'     bold='\033[1m' _under='\033[4m'
 	   red='\033[31m'   green='\033[32m' blue='\033[34m'
 	yellow='\033[33m' magenta='\033[35m' cyan='\033[36m'
 	  gray='\033[1;37m'
@@ -109,7 +109,7 @@ println() { printf '%b\n' "$@"; }
      ok() { msg "[+] $green" "$@"; }
    info() { msg "[*] $magenta" "$@"; }
    warn() { msg "[!] $yellow" "$yellow$*$reset"; }
-    err() { msg2 "error: $red" "$@" && exit 1; } >&2
+    err() { msg2 "error $red" "$@"; } >&2
 
 ctrl_c() {
 	info 'Exiting in a controlled way'
@@ -932,6 +932,22 @@ hascmd() {
 	done
 }
 
+hascmds() {
+    for i in "$@"
+	do
+        has "$i" || cmds="$cmds $i"
+    done
+
+	cmds=${cmds#* }
+
+    if [ -n "$cmds" ]
+	then
+        err "$cmds: commands not found"
+        printf 'Please install: %s\n' "$cmds"
+        exit 1
+    fi
+}
+
 isfile() {
 	path="$1"
 
@@ -1026,7 +1042,7 @@ get_keys() {
 }
 
 main() {
-	 reset=''    bold='' under=''
+	 reset=''    bold='' _under=''
 	   red=''   green='' blue=''
 	yellow='' magenta='' cyan=''
 	  gray=''
@@ -1037,7 +1053,8 @@ main() {
 	optparse "$@"
 	shift $((OPTIND - 1))
 
-	hascmd 'curl' 'dig' 'jq' 'xmllint' 'whois'
+	hascmds curl dig jq xmllint whois
+	#hascmd curl dig jq xmllint whois
 	check_xdg
 
 	if [ -z "$domain" ] && [ -z "$fval" ]
@@ -1059,10 +1076,13 @@ main() {
 
 	[ -n "$domain" ] && main_logic "$domain" && return 0
 
-	while IFS= read -r domain
-	do
-		main_logic "$domain"
-	done < "$fval"
+	if ! $curl
+	then
+		while IFS= read -r domain
+		do
+			main_logic "$domain"
+		done < "$fval"
+	fi
 }
 
 main "${1+"$@"}"
