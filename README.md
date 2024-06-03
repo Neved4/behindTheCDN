@@ -68,6 +68,13 @@ $ chmod u+x behindTheCDN.sh
 Finally, set the APIs for VirustTotal and Censys on the
 [`API.conf`](API.conf) file.
 
+### Docker
+
+To run the script inside a [Docker] image, run:
+```sh
+docker build .
+```
+
 ## Usage
 
 The following options are available:
@@ -165,8 +172,8 @@ https://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html -->
 
 ## Standards
 
-This script is compatible with [ISO 9945:2009][POSIX.1-2017], also known as
-[POSIX.1-2017].[^1]
+This script is compatible with [ISO 9945:2009][POSIX.1-2017],
+also known as [POSIX.1-2017].[^1]
 
 ## License
 
@@ -175,27 +182,27 @@ This repository is licensed under the terms of the [MIT License].
 See the [LICENSE](LICENSE) file for details.
 
 [VirusTotal API]: https://www.virustotal.com/gui/user/username/apikey
-[Censys API]:     https://www.search.censys.io/account/api
-[Shodan API]:     https://developer.shodan.io/api/requirements
+[Censys API]: https://www.search.censys.io/account/api
+[Shodan API]: https://developer.shodan.io/api/requirements 
+[POSIX.1-2017]: https://pubs.opengroup.org/onlinepubs/9699919799/
+[MIT License]: https://opensource.org/license/mit/
+[Docker]: https://www.docker.com/
 
-[POSIX.1-2017]:   https://pubs.opengroup.org/onlinepubs/9699919799/
-[MIT License]:    https://opensource.org/license/mit/
-
-[`brew`]:    https://brew.sh/
-[`curl`]:    https://curl.se/
-[`jq`]:      https://jqlang.github.io/jq/
-[`dig`]:     https://en.wikipedia.org/wiki/Dig_(command)
+[`brew`]: https://brew.sh/
+[`curl`]: https://curl.se/
+[`jq`]: https://jqlang.github.io/jq/
+[`dig`]: https://en.wikipedia.org/wiki/Dig_(command)
 [`xmllint`]: https://gitlab.gnome.org/GNOME/libxml2/-/wikis/home
 
-[`bash`]:  https://git.savannah.gnu.org/cgit/bash.git/
-[`dash`]:  https://git.kernel.org/pub/scm/utils/dash/dash.git
+[`bash`]: https://git.savannah.gnu.org/cgit/bash.git/
+[`dash`]: https://git.kernel.org/pub/scm/utils/dash/dash.git
 [`ksh93`]: https://github.com/ksh93/ksh
-[`mksh`]:  https://github.com/MirBSD/mksh
-[`osh`]:   https://www.oilshell.org/cross-ref.html?tag=OSH#OSH
-[`oksh`]:  https://github.com/ibara/oksh
-[`posh`]:  https://salsa.debian.org/clint/posh
-[`yash`]:  https://github.com/magicant/yash
-[`zsh`]:   https://github.com/zsh-users/zsh
+[`mksh`]: https://github.com/MirBSD/mksh
+[`osh`]: https://www.oilshell.org/cross-ref.html?tag=OSH#OSH
+[`oksh`]: https://github.com/ibara/oksh
+[`posh`]: https://salsa.debian.org/clint/posh
+[`yash`]: https://github.com/magicant/yash
+[`zsh`]: https://github.com/zsh-users/zsh
 
 [^1]: _IEEE Std 1003.1-2017: Standard for Information Technology — Portable_
       _Operating System Interface (POSIX®)_, ISO/IEC/IEEE 9945:2009/COR
