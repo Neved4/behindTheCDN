@@ -590,6 +590,7 @@ show_ip_owner() {
 	done < "$ip_valid"
 }
 
+
 cdn_ptr() {
 	ip=$1
 	hostname=$(dig +short -x "$ip")
@@ -622,12 +623,16 @@ cdn_whois() {
 ## Need to merge cdn whois and ptr
 
 cdn_headers_cookies() {
-	ip=$1 detected_cdn=
+	ip=$1 detected_cdn='' trim='' pattern='' str=''
+	shift 1
 
 	headers=$(
-		curl_flags -I \
-			-H "$USER_AGENT" -H "$ACCEPT_HEADER" -H "$ACCEPT_LANGUAGE" \
-			-H "$CONNECTION_HEADER" --resolve "*:443:$ip" "https://$domain"
+		set -- -H "$USER_AGENT" \
+			   -H "$ACCEPT_HEADER" \
+			   -H "$ACCEPT_LANGUAGE" \
+			   -H "$CONNECTION_HEADER"
+
+		curl_flags -I -k "$@" --resolve "*:443:$ip" "https://$domain"
 	)
 
 	while IFS= read -r cdn
@@ -898,7 +903,6 @@ usage() {
 		"  -n  Disable printing colors" \
 		"  -s  Enable SSL certificate search" \
 		""
-		# VIRUSTOTAL_API_ID:CENSYS_API_ID:CENSYS_API_SECRET:SHODAN_API"
 }
 
 print_usage() {
