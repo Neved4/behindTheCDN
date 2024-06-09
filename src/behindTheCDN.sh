@@ -3,7 +3,7 @@ set -Cefu
 
 exe_ver=3.0.0
 repo_owner=Neved4
-_dns_resolver=8.8.8.8
+# _dns_resolver=8.8.8.8 # only use if the users explicitly wants to
 
  exe_dir=${0%/*}
 exe_name=${0##*/}
@@ -86,10 +86,10 @@ colorize() {
 }
 
 msg() {
-	  arg=$1 && shift 1
-	  pre=${arg%% *}
-	color=${arg#* }
-	bcolor=${bold}${color}
+	   arg=$1 && shift 1
+	   pre=${arg%% *}
+	 color=${arg#* }
+	bcolor=$bold$color
 
 	println "$bcolor$pre$reset$bold$gray $* $reset"
 }
@@ -120,7 +120,7 @@ curl_flags() {
 }
 
 virustotal_owner() {
-	ip="$1"
+	ip="$1" && shift 1
 
 	virustotal_report="$loc_dom/${ip}_virustotal_report.json"
 	virustotal_owner="$loc_dom/${ip}_virustotal_owner.txt"
@@ -315,13 +315,16 @@ censys_certs() {
 shodan_search () {
 	info "Shodan domain search <$domain>"
 
+	# shodan_access=true
+
 	if [ ! "$SHODAN_API" ]
 	then
 		err 'Enter Shodan API Key'
 		return 1
 	fi
 
-	shodan_query="$SHODAN_URL_API/shodan/host/search?key=$SHODAN_API&query=$domain"
+	shodan_search=$SHODAN_URL_API/shodan/host/search
+	shodan_query="$shodan_search?key=$SHODAN_API&query=$domain"
 
 	request=$(
 		curl_flags \
@@ -335,8 +338,9 @@ shodan_search () {
 
 	case $request in
 	*"Requires $re"*)
+		# shodan_access=false
 		printf '\033[A\r'
-		warn "Shodan access requires membership or higher"
+		printf '%b\n' "${bold}${yellow}[!]${reset} Shodan domain search <$domain> ${bold}${yellow}[Access]${reset}"
 		println
 		return 1
 	esac
@@ -376,7 +380,7 @@ case_type() {
 }
 
 printip() {
-	printf '%-15s %s\n' "${test_ip}" "$1%"
+	printf '%-15s %s\n' "$test_ip" "$1%"
 }
 
 printmatch() {
@@ -541,8 +545,7 @@ check_html() {
 }
 
 sort_uniq_file() {
-	 in="$1"
-	out="$2"
+	in="$1" out="$2"
 
 	[ ! -s "$in" ] && return 1
 
@@ -623,7 +626,7 @@ cdn_whois() {
 ## Need to merge cdn whois and ptr
 
 cdn_headers_cookies() {
-	ip=$1 detected_cdn='' trim='' pattern='' str=''
+	ip=$1 cdn_found='' match=''
 	shift 1
 
 	headers=$(
@@ -637,20 +640,19 @@ cdn_headers_cookies() {
 
 	while IFS= read -r cdn
 	do
-		str=$cdn
-		trim="${str#"${str%%[! ]*}"}"
-		pattern="${trim#* }"
+		match="${cdn#"${cdn%%[! ]*}"}"
+		match="${match#* }"
 
 		case $headers in
-		*$pattern*)
-			detected_cdn=$cdn
+		*$match*)
+			cdn_found=$cdn
 			break
 		esac
 	done < "$cdn_patterns"
 
-	if [ -n "$detected_cdn" ]
+	if [ -n "$cdn_found" ]
 	then
-		println "$ip CDN found by headers and cookies name: $detected_cdn"
+		println "$ip CDN found by headers and cookies name: $cdn_found"
 		return 0
 	fi
 
@@ -707,7 +709,8 @@ waf_detect_shodan() {
 
 	case $request in
 	*"Requires $re"*)
-		warn "Membership"
+		printf '%b\n' "${yellow}${bold}[Access]${reset}"
+		# warn 'Membership'
 		return 1
 	esac
 
@@ -727,7 +730,7 @@ waf_detect_shodan() {
 check_waf() {
 	[ ! -s "$ip_valid" ] && return 1
 
-	info 'Looking up the WAF in Shodan'
+	info 'Looking up WAF in Shodan'
 
 	for waf_search in $(sort "$ip_valid" | uniq)
 	do
@@ -743,11 +746,11 @@ check_waf() {
 }
 
 core_exec() {
-	  check_lines http
-	  check_lines https
+	check_lines http
+	check_lines https
 	check_html http
 	check_html https
-	 sort_uniq_ip
+	sort_uniq_ip
 }
 
 check_cdn_waf() {
@@ -772,6 +775,7 @@ flag_domain() {
 	trim_ip "$ip_valid"
 	show_ip
 	check_cdn_waf
+	warn "Shodan requires membership or higher to access"
 }
 
 iflag() {
@@ -783,6 +787,7 @@ iflag() {
 	trim_ip "$ip_valid"
 	show_ip_owner
 	check_cdn_waf
+	warn "Shodan requires membership or higher to access"
 }
 
 cflag() {
@@ -792,6 +797,7 @@ cflag() {
 	core2_exec
 	show_ip
 	check_cdn_waf
+	warn "Shodan requires membership or higher to access"
 }
 
 flag_all() {
@@ -801,6 +807,7 @@ flag_all() {
 	core2_exec
 	show_ip_owner
 	check_cdn_waf
+	warn "Shodan requires membership or higher to access"
 }
 
 check_dns_a_records() {
@@ -954,6 +961,7 @@ hascmds() {
 
 isfile() {
 	path="$1"
+	shift 1
 
 	[ ! -e "$path" ] && err "$path: No such file or directory" && return 1
 	  [ -d "$path" ] && err "$path: Is a directory." && return 1
