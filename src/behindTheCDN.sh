@@ -346,7 +346,7 @@ shodan_search () {
 	esac
 
 	test_ip=$(
-		jq -r '.matches[] | select(.ip_str | test("^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$")) | .ip_str' "$shodan_search_dom" | sort | uniq)
+		jq -r '.matches[] | select(.ip_str | test("^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$")) | .ip_str' "$shodan_search_dom" | sort -u)
 
 	if [ -z "$test_ip" ]
 	then
@@ -413,7 +413,7 @@ check_lines() {
 	case_type line
 	printmatch
 
-	for test_ip in $(sort "$loc_dom/ip.txt" | uniq)
+	for test_ip in $(sort -u "$loc_dom/ip.txt")
 	do
 		test_valid=$(
 			curl_flags \
@@ -487,7 +487,7 @@ match_percent() {
 	words_shared=$(println "$words_first" "$words_second" |
 		sort | uniq -d | wc -l)
 	 words_total=$(println "$words_first" "$words_second" |
-	 	sort | uniq | wc -l)
+	 	sort -u | wc -l)
 
 	match=$(
 		awk -v c="$words_shared" -v t="$words_total" '
@@ -549,7 +549,7 @@ sort_uniq_file() {
 
 	[ ! -s "$in" ] && return 1
 
-	sort "$in" | uniq >| "$out"
+	sort -u "$in" >| "$out"
 }
 
 sort_uniq_ip() {
@@ -715,9 +715,9 @@ waf_detect_shodan() {
 	esac
 
 	cdn=$(jq -r 'select(.tags[] | contains("cdn")).data[].isp' \
-		"$shodan_search_ip" | sort | uniq)
+		"$shodan_search_ip" | sort -u)
 
-	waf=$(jq -r '.data[].http.waf' "$shodan_search_ip" | sort | uniq)
+	waf=$(jq -r '.data[].http.waf' "$shodan_search_ip" | sort -u)
 
 	if [ -z "$waf" ] || [ "$waf" = "null" ]
 	then
@@ -732,7 +732,9 @@ check_waf() {
 
 	info 'Looking up WAF in Shodan'
 
-	for waf_search in $(sort "$ip_valid" | uniq)
+	ip_list=$(sort -u "$ip_valid")
+
+	for waf_search in $ip_list
 	do
 		waf_valid=$(waf_detect_shodan "$waf_search")
 
