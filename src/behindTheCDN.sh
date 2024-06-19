@@ -1039,32 +1039,20 @@ check_api() {
 	fi
 }
 
-key() {
-	os=$(uname -s)
-
-	case $os in
-	Darwin|Linux|*BSD)
-		s_opt='-s' ;;
-	*)
-		s_opt=
-	esac
-
-	for i in "$@"
-	do
-		key=$i
-
-		printf %s "Enter $key: "
-		isterm && read ${s_opt:-} -r val </dev/tty
- 		export "$i"="$val"
+getkey() {
+	for key in "$@"; do
+		stty -echo
+		printf "%s" "Enter $key: "
+		read -r val
+		stty echo
+		export "$key"="$val"
 		printf '\n'
 	done
 }
 
 api_keys() {
-	key VIRUSTOTAL_API_ID \
-		CENSYS_API_ID \
-		CENSYS_API_SECRET \
-		SHODAN_API
+	isterm && getkey \
+		VIRUSTOTAL_API_ID CENSYS_API_ID CENSYS_API_SECRET SHODAN_API
 }
 
 main() {
