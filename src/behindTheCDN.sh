@@ -27,6 +27,11 @@ cdn_vend='akamai cloudflare maxcdn fastly amazonaws google level3 verizon
 
 cdn_list=${CDN_LIST:-$cdn_vend}
 
+VIRUSTOTAL_API_ID=''
+CENSYS_API_ID=''
+CENSYS_API_SECRET=''
+SHODAN_API=''
+
 check_curl() {
 	curl=false
 
