@@ -23,7 +23,7 @@ There are extensive changes, including but not limited to the following:
   and ensure safer file redirections.[^1]
 - Add fallbacks and support environmental variables.
 - Use unified curl connections...
-- Upgrade `curl` insecure connections removing `-k`.
+- Upgrade most `curl` insecure connections to not use `-k`.
 
 #### *Simplicity*
 
@@ -42,7 +42,7 @@ There are extensive changes, including but not limited to the following:
   *`bash`, `dash`, `ksh93`, `mksh`, `oksh`, `osh`, `posh`, `yash`, `zsh`.*
 - Use `/bin/sh` with standard idioms, following POSIX spec closely.
 - Support and test different platforms `Linux`, `macOS`, `FreeBSD`.
-- Migrate `grep -P` PCRE regex to POSIX-compatible regex.
+- Migrate `grep -P` PCRE regex to POSIX-compatible regular expressions.
 
 #### *Performance*
 
@@ -69,6 +69,8 @@ There are extensive changes, including but not limited to the following:
 
 The new version should have equivalent functionality.  
 Further testing is recommended.
+
+[`mdoc`]: https://manpages.bsd.lv/mdoc.html
 
 [TigerStyle]: https://github.com/tigerbeetle/tigerbeetle/blob/main/docs/TIGER_STYLE.md
 
