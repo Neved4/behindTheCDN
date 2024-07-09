@@ -1,5 +1,17 @@
-![Shell Script](https://img.shields.io/badge/Shell_Script-9DDE66?logo=gnubash&logoColor=000&style=for-the-badge)
-[![POSIX.1%2D2017](https://img.shields.io/badge/POSIX.1&#8209;2017-6A737D?labelColor=6A737D&style=for-the-badge)][POSIX.1-2017]
+
+
+<div align="center">
+
+![Logo](https://github.com/Neved4/behindTheCDN/assets/63655535/86ef2ab1-5c14-4b88-8c6e-8815a5ed01f9)
+
+![macOS](https://img.shields.io/badge/macOS-000000?style=flat&logo=apple&logoColor=fff)
+![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=000&style=flat)
+![FreeBSD Badge](https://img.shields.io/badge/FreeBSD-AB2B28?logo=freebsd&logoColor=fff&style=flat)
+![WSL](https://img.shields.io/badge/WSL%202-0078D4?logo=windows&logoColor=fff&style=flat)
+![POSIX.1%2D2017](https://img.shields.io/badge/POSIX.1&#8209;2017-00629B?logo=ieee&logoColor=fff&style=flat)
+![Shell Script](https://img.shields.io/badge/Shell_Script-9DDE66?logo=gnubash&logoColor=000&style=flat)
+
+</div>
 
 # **[Draft]** `behindTheCDN.sh` - Bypass CDN/WAFs! 📍 📡
 
@@ -12,7 +24,9 @@ CDN/WAFs protecting a domain.
 
 <div align="center">
   <img src="https://github.com/Neved4/behindTheCDN/assets/63655535/3a42d932-b871-4846-ba05-d96d74fb9fc9" alt="Image Description" style="width: 85%" />
-  <h6>Catpuccin Mocha theme, font Menlo.</h6>
+  
+  ###### [Catppuccin Mocha] theme, [Menlo] font.
+
 </div>
 
 ## Getting Started
@@ -26,7 +40,7 @@ CDN/WAFs protecting a domain.
 > To succeed, you'll need:
 > 1. The API keys.
 > 2. Any shell listed in [Supported shells](#supported-shells).
-> 3. The following dependencies: [`curl`], [`jq`], [`dig`], [`xmllint`].
+> 3. The following dependencies: [`curl`], [`jq`], [`dig`], [`xmllint`], [`whois`].
 
 ### Online
 
@@ -187,6 +201,8 @@ See the [LICENSE](LICENSE) file for details.
 [POSIX.1-2017]: https://pubs.opengroup.org/onlinepubs/9699919799/
 [MIT License]: https://opensource.org/license/mit/
 [Docker]: https://www.docker.com/
+[Catppuccin Mocha]: https://github.com/catppuccin/catppuccin
+[Menlo]: https://en.wikipedia.org/wiki/Menlo_(typeface)
 
 [`brew`]: https://brew.sh/
 [`curl`]: https://curl.se/
