@@ -20,7 +20,7 @@ There are extensive changes, including but not limited to the following:
 - Add better checks, constraints, redirections and exit codes.
 - Add logic to handle Shodan membership warning instead of returning errors.
 - Use `set -Cefu` to enforce error exits, prevent var misuse
-  and ensure safer file redirections.[^1]
+  and ensure safer file redirections.[^cefu]
 - Add fallbacks and support environmental variables.
 - Use unified curl connections...
 - Upgrade most `curl` insecure connections to not use `-k`.
@@ -47,11 +47,9 @@ There are extensive changes, including but not limited to the following:
 #### *Performance*
 
 - Reduce runtime overhead performance ≈ `55 ms`, from `205.9 ms`
-  to `150.6 ms`.[^a]
-- Reduce the number of syscalls, from `5279` to `4530` total.[^2]
+  to `150.6 ms`.[^hyperfine]
+- Reduce the number of syscalls, from `5279` to `4530` total.[^dtrace]
 - Use the system default nameserver instead of `8.8.8.8`.
-
-[^a]: Measured with `hyperfine` on `-d 127.0.0.1`.
 
 #### *Other Features*
 
@@ -74,5 +72,6 @@ Further testing is recommended.
 
 [TigerStyle]: https://github.com/tigerbeetle/tigerbeetle/blob/main/docs/TIGER_STYLE.md
 
-[^1]: *See*: [ExplainShell: set -Cefu](https://explainshell.com/explain?cmd=set+-Cefu)
-[^2]: *cfr.* Measured with `dtrace` in Kali Linux 2024.1 when running with options -c.
+[^cefu]: *See*: [ExplainShell: set -Cefu](https://explainshell.com/explain?cmd=set+-Cefu)
+[^dtrace]: *cfr.* Counted with `dtrace` under _Kali Linux 2024.1_, with `-c`.
+[^hyperfine]: *cfr.* Benchmarked with `hyperfine` on `-d 127.0.0.1`.

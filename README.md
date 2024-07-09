@@ -1,15 +1,13 @@
-
-
 <div align="center">
 
-![Logo](https://github.com/Neved4/behindTheCDN/assets/63655535/86ef2ab1-5c14-4b88-8c6e-8815a5ed01f9)
-
+![Logo](https://github.com/Neved4/behindTheCDN/assets/63655535/ed5d6cda-f3f2-4e2d-8fd1-3ba89cce829d)
 ![macOS](https://img.shields.io/badge/macOS-000000?style=flat&logo=apple&logoColor=fff)
 ![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=000&style=flat)
 ![FreeBSD Badge](https://img.shields.io/badge/FreeBSD-AB2B28?logo=freebsd&logoColor=fff&style=flat)
 ![WSL](https://img.shields.io/badge/WSL%202-0078D4?logo=windows&logoColor=fff&style=flat)
 ![POSIX.1%2D2017](https://img.shields.io/badge/POSIX.1&#8209;2017-00629B?logo=ieee&logoColor=fff&style=flat)
 ![Shell Script](https://img.shields.io/badge/Shell_Script-9DDE66?logo=gnubash&logoColor=000&style=flat)
+![curl](https://img.shields.io/badge/curl-073551?logo=curl&logoColor=fff&style=flat)
 
 </div>
 
@@ -36,11 +34,12 @@ CDN/WAFs protecting a domain.
 > [!IMPORTANT]  
 > _**The script requires API keys for the VirusTotal, Censys, and Shodan APIs.**_  
 > _See: [VirusTotal API], [Censys API], [Shodan API]_.
->
-> To succeed, you'll need:
-> 1. The API keys.
-> 2. Any shell listed in [Supported shells](#supported-shells).
-> 3. The following dependencies: [`curl`], [`jq`], [`dig`], [`xmllint`], [`whois`].
+
+Before using `behindTheCDN`, you'll need:
+1. The API keys.
+2. Any shell listed in [Supported shells](#supported-shells).
+3. The following dependencies: [`curl`], [`jq`], [`dig`], [`xmllint`],
+   [`whois`].
 
 ### Online
 
@@ -56,13 +55,13 @@ curl -fsSL https://raw.githubusercontent.com/Neved4/behindTheCDN/main/src/behind
 If you have [`brew`] installed, run:
 
 ```sh
-$ brew install Neved4/homebrew-tap/behindTheCDN
+brew install Neved4/homebrew-tap/behindTheCDN
 ```
 
 #### *Basic Install*
 
 ```sh
-$ /bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/Neved4/BehindTheCDN/HEAD/tools/install.sh)"
+/bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/Neved4/BehindTheCDN/HEAD/tools/install.sh)"
 ```
 
 Set the APIs for VirustTotal and Censys on the [`API.conf`](conf/API.conf) file.
@@ -71,12 +70,12 @@ Set the APIs for VirustTotal and Censys on the [`API.conf`](conf/API.conf) file.
 
 First clone the `.git` repository:
 ```sh
-$ git clone https://github.com/Loop-Man/BehindTheCDN
+git clone https://github.com/Loop-Man/BehindTheCDN
 ```
 
 Then add permissions to execute:
 ```sh
-$ chmod u+x behindTheCDN.sh
+chmod u+x behindTheCDN.sh
 ```
 
 Finally, set the APIs for VirustTotal and Censys on the
@@ -96,7 +95,6 @@ The following options are available:
 <div align="center">
   <img src="https://github.com/Neved4/behindTheCDN/assets/63655535/c6ebea8b-f77c-4d28-9ebd-319307c5703c" alt="usage --help" style="width: 85%" />
 </div>
-
 
 <details>
   <summary>Usage (Offline)</summary>
@@ -209,6 +207,7 @@ See the [LICENSE](LICENSE) file for details.
 [`jq`]: https://jqlang.github.io/jq/
 [`dig`]: https://en.wikipedia.org/wiki/Dig_(command)
 [`xmllint`]: https://gitlab.gnome.org/GNOME/libxml2/-/wikis/home
+[`whois`]: https://github.com/rfc1036/whois
 
 [`bash`]: https://git.savannah.gnu.org/cgit/bash.git/
 [`dash`]: https://git.kernel.org/pub/scm/utils/dash/dash.git
