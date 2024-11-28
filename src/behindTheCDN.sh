@@ -1,5 +1,5 @@
 #!/bin/sh
-set -Cefu
+# set -Cefu
 
 exe_ver=3.0.0
 repo_owner=Neved4
@@ -967,13 +967,13 @@ hascmds() {
 }
 
 isfile() {
-	path="$1"
+	dir="$1"
 	shift 1
 
-	[ ! -e "$path" ] && err "$path: No such file or directory" && return 1
-	  [ -d "$path" ] && err "$path: Is a directory." && return 1
-	[ ! -r "$path" ] && err "$path: Permission denied." && return 1
-	  [ -f "$path" ] && return 0
+	[ ! -e "$dir" ] && err "$dir: No such file or directory" && return 1
+	  [ -d "$dir" ] && err "$dir: Is a directory." && return 1
+	[ ! -r "$dir" ] && err "$dir: Permission denied." && return 1
+	  [ -f "$dir" ] && return 0
 }
 
 srcfile() {
@@ -1054,6 +1054,11 @@ api_keys() {
 	isterm && getkey \
 		VIRUSTOTAL_API_ID CENSYS_API_ID CENSYS_API_SECRET SHODAN_API
 }
+
+case $- in
+*i*) return 0 ;;
+  *) set -Cefu
+esac
 
 main() {
 	 reset=''    bold='' _under=''
