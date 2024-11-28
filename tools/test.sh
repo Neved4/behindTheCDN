@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -Cefu
 
 # 1. test shells
 
@@ -11,6 +10,11 @@ exe_path() {
 
 	$exe_path
 }
+
+case $- in
+*i*) return 0 ;;
+  *) set -Cefu
+esac
 
 exe_path -d matrix.org
 exe_path -c -d matrix.org
