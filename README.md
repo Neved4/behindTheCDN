@@ -70,7 +70,7 @@ Set the APIs for VirustTotal and Censys on the [`API.conf`](conf/API.conf) file.
 
 First clone the `.git` repository:
 ```sh
-git clone https://github.com/Loop-Man/BehindTheCDN
+git clone https://github.com/Neved4/behindTheCDN
 ```
 
 Then add permissions to execute:
@@ -186,6 +186,10 @@ https://pubs.opengroup.org/onlinepubs/9699919799/utilities/sh.html -->
 
 This script is compatible with [ISO 9945:2009][POSIX.1-2017],
 also known as [POSIX.1-2017].[^1]
+
+## Credits
+
+Original script idea: [`BehindTheCDN` by Loop-Man & Bash Bunny](https://github.com/Loop-Man/BehindTheCDN).
 
 ## License
 
