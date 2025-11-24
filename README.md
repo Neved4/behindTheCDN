@@ -23,7 +23,7 @@ CDN/WAFs protecting a domain.
 > [!IMPORTANT]
 > Pentesting tools must only be used in lab environments or on systems you
 > are explicitly authorized to test. Executing this exploit against systems
-> you do not own is illegal and unethical.
+> you do not own can be illegal and unethical.
 
 <div align="center">
   <img src="https://github.com/Neved4/behindTheCDN/assets/63655535/3a42d932-b871-4846-ba05-d96d74fb9fc9" alt="Image Description" style="width: 85%" />
